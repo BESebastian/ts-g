@@ -2,7 +2,7 @@
 
 class Player extends Creature {
 
-    constructor(name: String) {
+    constructor(name: string) {
         super();
         this.name = name;
     }

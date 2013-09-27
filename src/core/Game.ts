@@ -3,18 +3,16 @@
 ///<reference path='AssetManager.ts' />
 ///<reference path='../item/ItemFactory.ts' />
 ///<reference path='../creature/CreatureFactory.ts' />
-///<reference path='../creature/Player.ts' />
 
 class Game {
 
     private renderer:Renderer;
     private input:Input;
     private assets:AssetManager;
-
     private cf:CreatureFactory;
     private if:ItemFactory;
 
-    private player:Player;
+    public player:Player;
 
     constructor() {
         this.renderer = new Renderer();
@@ -25,7 +23,6 @@ class Game {
         this.if = new ItemFactory();
 
         this.player = this.cf.spawnPlayer();
-        console.log(this.player);
 
         this.loop();
     }

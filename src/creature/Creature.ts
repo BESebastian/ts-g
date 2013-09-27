@@ -1,7 +1,7 @@
 class Creature {
 
     public pos;
-    public name:String;
+    public name:string;
 
     constructor() {
         this.pos = {

@@ -69,7 +69,6 @@ var CreatureFactory = (function () {
 ///<reference path='AssetManager.ts' />
 ///<reference path='../item/ItemFactory.ts' />
 ///<reference path='../creature/CreatureFactory.ts' />
-///<reference path='../creature/Player.ts' />
 var Game = (function () {
     function Game() {
         this.renderer = new Renderer();
@@ -80,7 +79,6 @@ var Game = (function () {
         this.if = new ItemFactory();
 
         this.player = this.cf.spawnPlayer();
-        console.log(this.player);
 
         this.loop();
     }
