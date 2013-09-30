@@ -6,23 +6,21 @@
 
 class Game {
 
-    private renderer:Renderer;
-    private input:Input;
-    private assets:AssetManager;
-    private cf:CreatureFactory;
-    private if:ItemFactory;
+    public  player:     Player;
 
-    public player:Player;
+    private renderer:   Renderer;
+    private input:      Input;
+    private assets:     AssetManager;
+    private cf:         CreatureFactory;
+    private if:         ItemFactory;
 
     constructor() {
         this.renderer = new Renderer();
-        this.input = new Input();
-        this.assets = new AssetManager();
-
-        this.cf = new CreatureFactory();
-        this.if = new ItemFactory();
-
-        this.player = this.cf.spawnPlayer();
+        this.input    = new Input();
+        this.assets   = new AssetManager();
+        this.cf       = new CreatureFactory();
+        this.if       = new ItemFactory();
+        this.player   = this.cf.spawnPlayer();
 
         this.loop();
     }
@@ -33,6 +31,7 @@ class Game {
     }
 
     private update():void {
+        this.input.update();
         this.renderer.update();
     }
 

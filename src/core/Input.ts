@@ -4,4 +4,8 @@ class Input {
 
     }
 
+    public update():void {
+    
+    }
+
 }
