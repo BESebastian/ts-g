@@ -3,7 +3,7 @@
 class CreatureFactory {
 
     public spawnPlayer():Player {
-        var player = new Player('dickbutt');
+        var player = new Player();
         return player;
     }
 
