@@ -11,7 +11,7 @@ class Projectile {
         this.model = new THREE.Mesh(geometry, material);
         this.model.position = this.pos;
         this.model.castShadow = true;
-        //this.modelreceiveShadow = true;
+        this.model.receiveShadow = true;
         this.velocity = {
             x: velX,
             y: velY,

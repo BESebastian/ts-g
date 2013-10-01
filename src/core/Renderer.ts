@@ -29,15 +29,8 @@ class Renderer {
         this.container.appendChild(this.renderer.domElement);
 
         this.renderer.setSize(this.container.offsetWidth, this.container.offsetHeight);
-        //this.renderer.shadowMapEnabled = true;
-        //this.renderer.shadowMapSoft = true;
-        //this.renderer.shadowCameraNear = 3;
-        //this.renderer.shadowCameraFar = this.camera.far;
-        //this.renderer.shadowCameraFov = 50;
-        //this.renderer.shadowMapBias = 0.0039;
-        //this.renderer.shadowMapDarkness = 0.5;
-        //this.renderer.shadowMapWidth = 1024;
-        //this.renderer.shadowMapHeight = 1024;
+        this.renderer.shadowMapEnabled = true;
+        this.renderer.shadowMapSoft = true;
 
         var light = new THREE.SpotLight(0xffffff, 0.8);
         light.angle = Math.PI/2;
