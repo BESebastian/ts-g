@@ -1,4 +1,3 @@
-///<reference path='../lib/three.d.ts' />
 var Renderer = (function () {
     function Renderer() {
         this.container = document.getElementById('container');
@@ -65,7 +64,6 @@ var Item = (function () {
     }
     return Item;
 })();
-///<reference path='Item.ts'/>
 var ItemFactory = (function () {
     function ItemFactory() {
     }
@@ -94,7 +92,6 @@ var Creature = (function () {
     };
     return Creature;
 })();
-///<reference path='Creature.ts'/>
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -134,7 +131,6 @@ var Player = (function (_super) {
     };
     return Player;
 })(Creature);
-///<reference path='Player.ts'/>
 var CreatureFactory = (function () {
     function CreatureFactory() {
     }
@@ -191,13 +187,6 @@ var TestWorld = (function () {
     };
     return TestWorld;
 })();
-///<reference path='Renderer.ts' />
-///<reference path='Input.ts' />
-///<reference path='AssetManager.ts' />
-///<reference path='../item/ItemFactory.ts' />
-///<reference path='../creature/CreatureFactory.ts' />
-///<reference path='../entities/Projectile.ts' />
-///<reference path='TestWorld.ts' />
 var Game = (function () {
     function Game() {
         this.renderer = new Renderer();
@@ -286,5 +275,4 @@ var Game = (function () {
     };
     return Game;
 })();
-///<reference path='core/Game.ts' />
 var g = new Game();
