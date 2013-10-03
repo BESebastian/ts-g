@@ -29,7 +29,13 @@ class Game {
         this.entities = [];
 
         this.renderer.scene.add(this.player.getModel());
-        this.renderer.scene.add(this.tw.getModel());
+
+        for (var x = 0; x < 5; x++) {
+            for (var y = 0; y < 5; y++) {
+                this.renderer.scene.add(this.tw.getModel(x, y));
+                console.log(this.tw.getModel(x, y));
+            }
+        }
 
         this.entities.push(this.player);
 

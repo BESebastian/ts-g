@@ -10,7 +10,7 @@ class Player extends Creature {
         var geometry = new THREE.TorusKnotGeometry(1, 0.5, 150, 18);
         var material = new THREE.MeshPhongMaterial();
         this.model = new THREE.Mesh(geometry, material);
-        this.pos = new THREE.Vector3(1, 1, 2);
+        this.pos = new THREE.Vector3(12.5, 12.5, 2);
         this.model.position = this.pos;
         this.model.castShadow = true;
         this.model.receiveShadow = true;

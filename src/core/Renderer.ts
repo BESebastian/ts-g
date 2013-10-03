@@ -30,7 +30,7 @@ class Renderer {
 
         this.renderer.setSize(this.container.offsetWidth, this.container.offsetHeight);
         this.renderer.shadowMapEnabled = true;
-        this.renderer.shadowMapSoft = true;
+        //this.renderer.shadowMapSoft = true;
 
         var light = new THREE.SpotLight(0xffffff, 0.8);
         light.angle = Math.PI/2;
@@ -38,7 +38,7 @@ class Renderer {
         light.position.set(0, 0, 100);
         this.scene.add(light);
 
-        this.camera.position.set(0, 0, 20);
+        this.camera.position.set(12.5, 12.5, 20);
     }
 
     public draw():void {

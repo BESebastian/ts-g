@@ -15,7 +15,7 @@ class Projectile {
         this.velocity = {
             x: velX,
             y: velY,
-            z: velZ
+            z: 0
         };
     }
 
