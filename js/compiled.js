@@ -15,6 +15,7 @@ var Renderer = (function () {
 
         this.renderer.setSize(this.container.offsetWidth, this.container.offsetHeight);
         this.renderer.shadowMapEnabled = true;
+        this.renderer.shadowMapSoft = true;
 
         var light = new THREE.SpotLight(0xffffff, 0.8);
         light.angle = Math.PI / 2;
@@ -22,10 +23,15 @@ var Renderer = (function () {
         light.position.set(0, 0, 100);
         this.scene.add(light);
 
-        this.camera.position.set(12.5, 12.5, 20);
+        this.camera.position.set(0, 0, 20);
     }
     Renderer.prototype.draw = function () {
         this.renderer.render(this.scene, this.camera);
+    };
+
+    Renderer.prototype.moveCamera = function (vector) {
+        this.camera.position.x = vector.x;
+        this.camera.position.y = vector.y;
     };
 
     Renderer.prototype.update = function () {
@@ -101,9 +107,10 @@ var Player = (function (_super) {
     __extends(Player, _super);
     function Player() {
         _super.call(this);
-        var geometry = new THREE.TorusKnotGeometry(1, 0.5, 150, 18);
-        var material = new THREE.MeshPhongMaterial();
-        this.model = new THREE.Mesh(geometry, material);
+        var geometry = new THREE.CubeGeometry(1, 1, 1);
+        var shadeMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
+        var edgeMat = new THREE.MeshBasicMaterial({ color: 0x00FF00, wireframe: true, transparent: true, wireframeLinewidth: 3 });
+        this.model = THREE.SceneUtils.createMultiMaterialObject(geometry, [shadeMat, edgeMat]);
         this.pos = new THREE.Vector3(12.5, 12.5, 2);
         this.model.position = this.pos;
         this.model.castShadow = true;
@@ -143,8 +150,10 @@ var Projectile = (function () {
     function Projectile(vector, velX, velY, velZ) {
         this.pos = new THREE.Vector3(vector.x, vector.y, vector.z);
         var geometry = new THREE.CubeGeometry(0.5, 0.5, 0.5);
-        var material = new THREE.MeshPhongMaterial({ color: 0xff0000 });
-        this.model = new THREE.Mesh(geometry, material);
+        var shadeMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
+        var edgeMat = new THREE.MeshBasicMaterial({ color: 0xFF0000, wireframe: true, transparent: true, wireframeLinewidth: 3 });
+        this.model = THREE.SceneUtils.createMultiMaterialObject(geometry, [shadeMat, edgeMat]);
+
         this.model.position = this.pos;
         this.model.castShadow = true;
         this.model.receiveShadow = true;
@@ -174,21 +183,18 @@ var Projectile = (function () {
     return Projectile;
 })();
 var TestWorld = (function () {
-    function TestWorld() {
+    function TestWorld(texture) {
         this.bound = 5;
-
-        var geometry = new THREE.PlaneGeometry(40, 20);
-        var material = new THREE.MeshPhongMaterial({ color: 0x777777 });
-        this.model = new THREE.Mesh(geometry, material);
-        this.model.receiveShadow = true;
-        this.model.castShadow = true;
+        this.texture = texture;
 
         this.world = [];
         this.meshes = [];
+
         for (var i = 0; i < this.bound; i++) {
             this.world[i] = [];
             this.meshes[i] = [];
         }
+
         this.generateWorld();
         this.generateMeshes();
     }
@@ -201,12 +207,12 @@ var TestWorld = (function () {
     };
 
     TestWorld.prototype.generateMeshes = function () {
-        var geometry = new THREE.CubeGeometry(5, 5, 5);
-        var material = new THREE.MeshPhongMaterial({ color: 0xffffff });
+        var geometry = new THREE.CubeGeometry(this.bound, this.bound, 1);
+        var material = new THREE.MeshPhongMaterial({ map: this.texture });
         for (var x = 0; x < this.bound; x++) {
             for (var y = 0; y < this.bound; y++) {
-                this.meshes[x][y] = new THREE.Mesh(geometry, material);
-                this.meshes[x][y].position = new THREE.Vector3(x * 5, y * 5, -5);
+                this.meshes[x][y] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
+                this.meshes[x][y].position = new THREE.Vector3(x * this.bound, y * this.bound, -5);
                 this.meshes[x][y].receiveShadow = true;
                 this.meshes[x][y].castShadow = true;
             }
@@ -220,13 +226,14 @@ var TestWorld = (function () {
 })();
 var Game = (function () {
     function Game() {
+        this.assets = new AssetManager();
+
         this.renderer = new Renderer();
         this.input = new Input();
-        this.assets = new AssetManager();
         this.cf = new CreatureFactory();
         this.if = new ItemFactory();
         this.player = this.cf.spawnPlayer();
-        this.tw = new TestWorld();
+        this.tw = new TestWorld(THREE.ImageUtils.loadTexture('../assets/test.png'));
         this.entities = [];
 
         this.renderer.scene.add(this.player.getModel());
@@ -234,7 +241,6 @@ var Game = (function () {
         for (var x = 0; x < 5; x++) {
             for (var y = 0; y < 5; y++) {
                 this.renderer.scene.add(this.tw.getModel(x, y));
-                console.log(this.tw.getModel(x, y));
             }
         }
 
@@ -256,15 +262,19 @@ var Game = (function () {
         var projectile = null;
         if (this.input.isPressed('65')) {
             this.player.move(-0.1, 0);
+            this.renderer.moveCamera(this.player.getPosition());
         }
         if (this.input.isPressed('68')) {
             this.player.move(0.1, 0);
+            this.renderer.moveCamera(this.player.getPosition());
         }
         if (this.input.isPressed('83')) {
             this.player.move(0, -0.1);
+            this.renderer.moveCamera(this.player.getPosition());
         }
         if (this.input.isPressed('87')) {
             this.player.move(0, 0.1);
+            this.renderer.moveCamera(this.player.getPosition());
         }
         if (this.input.isPressed('37')) {
             this.player.model.rotation.y -= 0.1;
