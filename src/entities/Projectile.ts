@@ -1,14 +1,16 @@
 class Projectile {
 
     public  pos:        THREE.Vector3;
-    public  model:      THREE.Mesh;
+    public  model:      THREE.Object3D;
     public  velocity:   any;
 
     constructor(vector, velX: number, velY: number, velZ: number) {
         this.pos = new THREE.Vector3(vector.x, vector.y, vector.z);
         var geometry = new THREE.CubeGeometry(0.5, 0.5, 0.5);
-        var material = new THREE.MeshPhongMaterial({ color: 0xff0000 });
-        this.model = new THREE.Mesh(geometry, material);
+        var shadeMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
+        var edgeMat = new THREE.MeshBasicMaterial({ color: 0xFF0000, wireframe: true, transparent: true, wireframeLinewidth: 3 });
+        this.model = THREE.SceneUtils.createMultiMaterialObject(geometry, [shadeMat, edgeMat]);
+
         this.model.position = this.pos;
         this.model.castShadow = true;
         this.model.receiveShadow = true;
@@ -33,7 +35,7 @@ class Projectile {
         this.model.position = this.pos;
     }
 
-    public getModel():THREE.Mesh {
+    public getModel():THREE.Object3D {
         return this.model;
     }
 

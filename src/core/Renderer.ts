@@ -6,13 +6,13 @@ class Renderer {
     public  HEIGHT:     number;
     public  container:  HTMLElement;
     public  scene:      THREE.Scene;
+    public  camera:     THREE.PerspectiveCamera;
 
     private VIEW_ANGLE: number;
     private ASPECT:     number;
     private NEAR:       number;
     private FAR:        number;
     private renderer:   THREE.WebGLRenderer;
-    private camera:     THREE.PerspectiveCamera;
 
     constructor() {
         this.container  = document.getElementById('container');
@@ -30,7 +30,7 @@ class Renderer {
 
         this.renderer.setSize(this.container.offsetWidth, this.container.offsetHeight);
         this.renderer.shadowMapEnabled = true;
-        //this.renderer.shadowMapSoft = true;
+        this.renderer.shadowMapSoft = true;
 
         var light = new THREE.SpotLight(0xffffff, 0.8);
         light.angle = Math.PI/2;
@@ -38,11 +38,16 @@ class Renderer {
         light.position.set(0, 0, 100);
         this.scene.add(light);
 
-        this.camera.position.set(12.5, 12.5, 20);
+        this.camera.position.set(0, 0, 20);
     }
 
     public draw():void {
         this.renderer.render(this.scene, this.camera);
+    }
+
+    public moveCamera(vector: THREE.Vector3):void {
+        this.camera.position.x = vector.x;
+        this.camera.position.y = vector.y;
     }
 
     public update():void {

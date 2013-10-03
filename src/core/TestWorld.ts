@@ -1,25 +1,22 @@
 class TestWorld {
 
-    private model:  THREE.Mesh;
-    public  bound:  number;
-    public  world;
-    public  meshes: THREE.Mesh[][];
+    public  bound:      number;
+    public  world:      number[][];
+    public  meshes:     THREE.Object3D[][];
+    private texture:    THREE.Texture;
 
-    constructor() {
+    constructor(texture: THREE.Texture) {
         this.bound = 5;
-
-        var geometry = new THREE.PlaneGeometry(40, 20);
-        var material = new THREE.MeshPhongMaterial({ color: 0x777777 });
-        this.model = new THREE.Mesh(geometry, material);
-        this.model.receiveShadow = true;
-        this.model.castShadow = true;
+        this.texture = texture;
 
         this.world = [];
         this.meshes = [];
+
         for (var i = 0; i < this.bound; i++) {
             this.world[i] = [];
             this.meshes[i] = [];
         }
+
         this.generateWorld();
         this.generateMeshes();
     }
@@ -33,19 +30,19 @@ class TestWorld {
     }
 
     private generateMeshes():void {
-        var geometry = new THREE.CubeGeometry(5, 5, 5);
-        var material = new THREE.MeshPhongMaterial({ color: 0xffffff });
+        var geometry = new THREE.CubeGeometry(this.bound, this.bound, 1);
+        var material = new THREE.MeshPhongMaterial({ map: this.texture });
         for (var x = 0; x < this.bound; x++) {
             for (var y = 0; y < this.bound; y++) {
-                this.meshes[x][y] = new THREE.Mesh(geometry, material);
-                this.meshes[x][y].position = new THREE.Vector3(x * 5, y * 5, -5);
+                this.meshes[x][y] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
+                this.meshes[x][y].position = new THREE.Vector3(x * this.bound, y * this.bound, -5);
                 this.meshes[x][y].receiveShadow = true;
                 this.meshes[x][y].castShadow = true;
             }
         }
     }
 
-    public getModel(x: number, y: number):THREE.Mesh {
+    public getModel(x: number, y: number):THREE.Object3D {
         return this.meshes[x][y];
     }
 

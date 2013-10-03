@@ -1,6 +1,6 @@
 class Creature {
 
-    public  model:  THREE.Mesh;
+    public  model:  THREE.Object3D;
     public  pos:    THREE.Vector3;
 
     constructor() {}
@@ -13,7 +13,7 @@ class Creature {
     
     }
 
-    public getModel():THREE.Mesh {
+    public getModel():THREE.Object3D {
         return this.model;
     }
 
