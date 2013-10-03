@@ -15,7 +15,6 @@ var Renderer = (function () {
 
         this.renderer.setSize(this.container.offsetWidth, this.container.offsetHeight);
         this.renderer.shadowMapEnabled = true;
-        this.renderer.shadowMapSoft = true;
 
         var light = new THREE.SpotLight(0xffffff, 0.8);
         light.angle = Math.PI / 2;
@@ -23,7 +22,7 @@ var Renderer = (function () {
         light.position.set(0, 0, 100);
         this.scene.add(light);
 
-        this.camera.position.set(0, 0, 20);
+        this.camera.position.set(12.5, 12.5, 20);
     }
     Renderer.prototype.draw = function () {
         this.renderer.render(this.scene, this.camera);
@@ -105,7 +104,7 @@ var Player = (function (_super) {
         var geometry = new THREE.TorusKnotGeometry(1, 0.5, 150, 18);
         var material = new THREE.MeshPhongMaterial();
         this.model = new THREE.Mesh(geometry, material);
-        this.pos = new THREE.Vector3(1, 1, 2);
+        this.pos = new THREE.Vector3(12.5, 12.5, 2);
         this.model.position = this.pos;
         this.model.castShadow = true;
         this.model.receiveShadow = true;
@@ -152,7 +151,7 @@ var Projectile = (function () {
         this.velocity = {
             x: velX,
             y: velY,
-            z: velZ
+            z: 0
         };
     }
     Projectile.prototype.update = function () {
@@ -176,14 +175,46 @@ var Projectile = (function () {
 })();
 var TestWorld = (function () {
     function TestWorld() {
+        this.bound = 5;
+
         var geometry = new THREE.PlaneGeometry(40, 20);
         var material = new THREE.MeshPhongMaterial({ color: 0x777777 });
         this.model = new THREE.Mesh(geometry, material);
         this.model.receiveShadow = true;
         this.model.castShadow = true;
+
+        this.world = [];
+        this.meshes = [];
+        for (var i = 0; i < this.bound; i++) {
+            this.world[i] = [];
+            this.meshes[i] = [];
+        }
+        this.generateWorld();
+        this.generateMeshes();
     }
-    TestWorld.prototype.getModel = function () {
-        return this.model;
+    TestWorld.prototype.generateWorld = function () {
+        for (var x = 0; x < this.bound; x++) {
+            for (var y = 0; y < this.bound; y++) {
+                this.world[x][y] = 1;
+            }
+        }
+    };
+
+    TestWorld.prototype.generateMeshes = function () {
+        var geometry = new THREE.CubeGeometry(5, 5, 5);
+        var material = new THREE.MeshPhongMaterial({ color: 0xffffff });
+        for (var x = 0; x < this.bound; x++) {
+            for (var y = 0; y < this.bound; y++) {
+                this.meshes[x][y] = new THREE.Mesh(geometry, material);
+                this.meshes[x][y].position = new THREE.Vector3(x * 5, y * 5, -5);
+                this.meshes[x][y].receiveShadow = true;
+                this.meshes[x][y].castShadow = true;
+            }
+        }
+    };
+
+    TestWorld.prototype.getModel = function (x, y) {
+        return this.meshes[x][y];
     };
     return TestWorld;
 })();
@@ -199,7 +230,13 @@ var Game = (function () {
         this.entities = [];
 
         this.renderer.scene.add(this.player.getModel());
-        this.renderer.scene.add(this.tw.getModel());
+
+        for (var x = 0; x < 5; x++) {
+            for (var y = 0; y < 5; y++) {
+                this.renderer.scene.add(this.tw.getModel(x, y));
+                console.log(this.tw.getModel(x, y));
+            }
+        }
 
         this.entities.push(this.player);
 
