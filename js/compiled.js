@@ -1,5 +1,5 @@
 var Renderer = (function () {
-    function Renderer() {
+    function Renderer(width, height, tileSize) {
         this.container = document.getElementById('container');
         this.WIDTH = this.container.offsetWidth;
         this.HEIGHT = this.container.offsetHeight;
@@ -91,6 +91,10 @@ var Creature = (function () {
         return this.pos;
     };
 
+    Creature.prototype.setPosition = function (pos) {
+        this.pos = pos;
+    };
+
     Creature.prototype.getSpeed = function () {
         return this.speed;
     };
@@ -146,8 +150,9 @@ var Player = (function (_super) {
 var CreatureFactory = (function () {
     function CreatureFactory() {
     }
-    CreatureFactory.prototype.spawnPlayer = function () {
+    CreatureFactory.prototype.spawnPlayer = function (vector) {
         var player = new Player();
+        player.setPosition(vector);
         return player;
     };
     return CreatureFactory;
@@ -184,10 +189,10 @@ var Projectile = (function () {
     return Projectile;
 })();
 var TestWorld = (function () {
-    function TestWorld(texture) {
-        this.bound = 5;
-        this.width = 13;
-        this.height = 7;
+    function TestWorld(texture, width, height, tileSize) {
+        this.bound = tileSize;
+        this.width = width;
+        this.height = height;
         this.texture = texture;
 
         this.world = [];
@@ -211,10 +216,11 @@ var TestWorld = (function () {
 
     TestWorld.prototype.generateMeshes = function () {
         var geometry = new THREE.CubeGeometry(this.bound, this.bound, 1);
-        var material = new THREE.MeshPhongMaterial();
+        var material = new THREE.MeshPhongMaterial({ map: this.texture });
+        var material2 = new THREE.MeshBasicMaterial({ wireframe: true, wireframeLinewidth: 3 });
         for (var y = 0; y < this.height; y++) {
             for (var x = 0; x < this.width; x++) {
-                this.meshes[y][x] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
+                this.meshes[y][x] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material, material2]);
                 this.meshes[y][x].position = new THREE.Vector3(x * this.bound, y * this.bound, -5);
                 this.meshes[y][x].receiveShadow = true;
                 this.meshes[y][x].castShadow = true;
@@ -231,12 +237,19 @@ var Game = (function () {
     function Game() {
         this.assets = new AssetManager();
 
-        this.renderer = new Renderer();
+        this.width = 13;
+        this.height = 7;
+        this.tileSize = 5;
+
+        var spawnPos = new THREE.Vector3(((this.width * this.tileSize) / 2) - (this.tileSize / 2), ((this.height * this.tileSize) / 2) - (this.tileSize / 2), 0);
+        console.log(spawnPos);
+
+        this.renderer = new Renderer(this.width, this.height, this.tileSize);
         this.input = new Input();
         this.cf = new CreatureFactory();
         this.if = new ItemFactory();
-        this.player = this.cf.spawnPlayer();
-        this.tw = new TestWorld(THREE.ImageUtils.loadTexture('../assets/test.png'));
+        this.player = this.cf.spawnPlayer(spawnPos);
+        this.tw = new TestWorld(THREE.ImageUtils.loadTexture('../assets/test.png'), this.width, this.height, this.tileSize);
         this.entities = [];
 
         this.renderer.scene.add(this.player.getModel());
