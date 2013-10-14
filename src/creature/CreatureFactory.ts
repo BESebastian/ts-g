@@ -2,8 +2,9 @@
 
 class CreatureFactory {
 
-    public spawnPlayer():Player {
+    public spawnPlayer(vector):Player {
         var player = new Player();
+        player.setPosition(vector);
         return player;
     }
 

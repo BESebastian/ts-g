@@ -17,16 +17,30 @@ class Game {
     private if:         ItemFactory;
     private tw:         TestWorld;
     private entities;
+    private width:      number;
+    private height:     number;
+    private tileSize:   number;
 
     constructor() {
         this.assets   = new AssetManager();
 
-        this.renderer = new Renderer();
+        this.width = 13;
+        this.height = 7;
+        this.tileSize = 5;
+
+        var spawnPos = new THREE.Vector3(
+            ((this.width * this.tileSize) / 2) - (this.tileSize / 2),
+            ((this.height * this.tileSize) / 2) - (this.tileSize / 2),
+            0
+        );
+        console.log(spawnPos);
+
+        this.renderer = new Renderer(this.width, this.height, this.tileSize);
         this.input    = new Input();
         this.cf       = new CreatureFactory();
         this.if       = new ItemFactory();
-        this.player   = this.cf.spawnPlayer();
-        this.tw       = new TestWorld(THREE.ImageUtils.loadTexture('../assets/test.png'));
+        this.player   = this.cf.spawnPlayer(spawnPos);
+        this.tw       = new TestWorld(THREE.ImageUtils.loadTexture('../assets/test.png'), this.width, this.height, this.tileSize);
         this.entities = [];
 
         this.renderer.scene.add(this.player.getModel());

@@ -22,6 +22,10 @@ class Creature {
         return this.pos;
     }
 
+    public setPosition(pos):void {
+        this.pos = pos;
+    }
+
     public getSpeed():number {
         return this.speed;
     }

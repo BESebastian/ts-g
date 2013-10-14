@@ -14,7 +14,7 @@ class Renderer {
     private FAR:        number;
     private renderer:   THREE.WebGLRenderer;
 
-    constructor() {
+    constructor(width, height, tileSize) {
         this.container  = document.getElementById('container');
         this.WIDTH      = this.container.offsetWidth;
         this.HEIGHT     = this.container.offsetHeight;

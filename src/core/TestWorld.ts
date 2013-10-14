@@ -7,10 +7,10 @@ class TestWorld {
     public  meshes:     THREE.Object3D[][];
     private texture:    THREE.Texture;
 
-    constructor(texture: THREE.Texture) {
-        this.bound = 5;
-        this.width = 13;
-        this.height = 7;
+    constructor(texture: THREE.Texture, width, height, tileSize) {
+        this.bound = tileSize;
+        this.width = width;
+        this.height = height;
         this.texture = texture;
 
         this.world = [];
@@ -35,10 +35,11 @@ class TestWorld {
 
     private generateMeshes():void {
         var geometry = new THREE.CubeGeometry(this.bound, this.bound, 1);
-        var material = new THREE.MeshPhongMaterial(/*{ map: this.texture }*/);
+        var material = new THREE.MeshPhongMaterial({ map: this.texture });
+        var material2 = new THREE.MeshBasicMaterial({ wireframe: true, wireframeLinewidth: 3 });
         for (var y = 0; y < this.height; y++) {
             for (var x = 0; x < this.width; x++) {
-                this.meshes[y][x] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
+                this.meshes[y][x] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material, material2]);
                 this.meshes[y][x].position = new THREE.Vector3(x * this.bound, y * this.bound, -5);
                 this.meshes[y][x].receiveShadow = true;
                 this.meshes[y][x].castShadow = true;
