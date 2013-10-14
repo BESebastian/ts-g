@@ -23,7 +23,7 @@ var Renderer = (function () {
         light.position.set(0, 0, 100);
         this.scene.add(light);
 
-        this.camera.position.set(0, 0, 20);
+        this.camera.position.set(0, 0, 50);
     }
     Renderer.prototype.draw = function () {
         this.renderer.render(this.scene, this.camera);
@@ -91,6 +91,10 @@ var Creature = (function () {
         return this.pos;
     };
 
+    Creature.prototype.getSpeed = function () {
+        return this.speed;
+    };
+
     Creature.prototype.move = function (x, y) {
         this.pos.x += x;
         this.pos.y += y;
@@ -107,11 +111,13 @@ var Player = (function (_super) {
     __extends(Player, _super);
     function Player() {
         _super.call(this);
-        var geometry = new THREE.CubeGeometry(1, 1, 1);
+        var size = 4;
+        var geometry = new THREE.CubeGeometry(size, size, size);
         var shadeMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
         var edgeMat = new THREE.MeshBasicMaterial({ color: 0x00FF00, wireframe: true, transparent: true, wireframeLinewidth: 3 });
         this.model = THREE.SceneUtils.createMultiMaterialObject(geometry, [shadeMat, edgeMat]);
         this.pos = new THREE.Vector3(12.5, 12.5, 2);
+        this.speed = 0.7;
         this.model.position = this.pos;
         this.model.castShadow = true;
         this.model.receiveShadow = true;
@@ -149,7 +155,7 @@ var CreatureFactory = (function () {
 var Projectile = (function () {
     function Projectile(vector, velX, velY, velZ) {
         this.pos = new THREE.Vector3(vector.x, vector.y, vector.z);
-        var geometry = new THREE.CubeGeometry(0.5, 0.5, 0.5);
+        var geometry = new THREE.SphereGeometry(1, 10, 10);
         var shadeMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
         var edgeMat = new THREE.MeshBasicMaterial({ color: 0xFF0000, wireframe: true, transparent: true, wireframeLinewidth: 3 });
         this.model = THREE.SceneUtils.createMultiMaterialObject(geometry, [shadeMat, edgeMat]);
@@ -169,11 +175,6 @@ var Projectile = (function () {
         if (this.pos.z - this.velocity.z > 0) {
             this.pos.z += this.velocity.z;
         }
-        if (this.velocity.x > this.velocity.y) {
-            this.model.rotation.x += 0.3;
-        } else {
-            this.model.rotation.y += 0.3;
-        }
         this.model.position = this.pos;
     };
 
@@ -185,12 +186,14 @@ var Projectile = (function () {
 var TestWorld = (function () {
     function TestWorld(texture) {
         this.bound = 5;
+        this.width = 13;
+        this.height = 7;
         this.texture = texture;
 
         this.world = [];
         this.meshes = [];
 
-        for (var i = 0; i < this.bound; i++) {
+        for (var i = 0; i < this.height; i++) {
             this.world[i] = [];
             this.meshes[i] = [];
         }
@@ -199,28 +202,28 @@ var TestWorld = (function () {
         this.generateMeshes();
     }
     TestWorld.prototype.generateWorld = function () {
-        for (var x = 0; x < this.bound; x++) {
-            for (var y = 0; y < this.bound; y++) {
-                this.world[x][y] = 1;
+        for (var y = 0; y < this.height; y++) {
+            for (var x = 0; x < this.width; x++) {
+                this.world[y][x] = 1;
             }
         }
     };
 
     TestWorld.prototype.generateMeshes = function () {
         var geometry = new THREE.CubeGeometry(this.bound, this.bound, 1);
-        var material = new THREE.MeshPhongMaterial({ map: this.texture });
-        for (var x = 0; x < this.bound; x++) {
-            for (var y = 0; y < this.bound; y++) {
-                this.meshes[x][y] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
-                this.meshes[x][y].position = new THREE.Vector3(x * this.bound, y * this.bound, -5);
-                this.meshes[x][y].receiveShadow = true;
-                this.meshes[x][y].castShadow = true;
+        var material = new THREE.MeshPhongMaterial();
+        for (var y = 0; y < this.height; y++) {
+            for (var x = 0; x < this.width; x++) {
+                this.meshes[y][x] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
+                this.meshes[y][x].position = new THREE.Vector3(x * this.bound, y * this.bound, -5);
+                this.meshes[y][x].receiveShadow = true;
+                this.meshes[y][x].castShadow = true;
             }
         }
     };
 
     TestWorld.prototype.getModel = function (x, y) {
-        return this.meshes[x][y];
+        return this.meshes[y][x];
     };
     return TestWorld;
 })();
@@ -238,14 +241,14 @@ var Game = (function () {
 
         this.renderer.scene.add(this.player.getModel());
 
-        for (var x = 0; x < 5; x++) {
-            for (var y = 0; y < 5; y++) {
+        for (var y = 0; y < this.tw.height; y++) {
+            for (var x = 0; x < this.tw.width; x++) {
                 this.renderer.scene.add(this.tw.getModel(x, y));
             }
         }
 
         this.entities.push(this.player);
-
+        this.renderer.moveCamera(this.player.getPosition());
         this.loop();
     }
     Game.prototype.loop = function () {
@@ -254,71 +257,61 @@ var Game = (function () {
         requestAnimationFrame(this.loop.bind(this));
     };
 
+    Game.prototype.draw = function () {
+        this.renderer.draw();
+    };
+
     Game.prototype.update = function () {
         this.entities.forEach(function (entity) {
             entity.update();
         });
+        this.handleKeys();
+        this.renderer.update();
+    };
 
+    Game.prototype.handleKeys = function () {
         var projectile = null;
         if (this.input.isPressed('65')) {
-            this.player.move(-0.1, 0);
+            this.player.move(-0.3, 0);
             this.renderer.moveCamera(this.player.getPosition());
         }
         if (this.input.isPressed('68')) {
-            this.player.move(0.1, 0);
+            this.player.move(0.3, 0);
             this.renderer.moveCamera(this.player.getPosition());
         }
         if (this.input.isPressed('83')) {
-            this.player.move(0, -0.1);
+            this.player.move(0, -0.3);
             this.renderer.moveCamera(this.player.getPosition());
         }
         if (this.input.isPressed('87')) {
-            this.player.move(0, 0.1);
+            this.player.move(0, 0.3);
             this.renderer.moveCamera(this.player.getPosition());
-        }
-        if (this.input.isPressed('37')) {
-            this.player.model.rotation.y -= 0.1;
-        }
-        if (this.input.isPressed('39')) {
-            this.player.model.rotation.y += 0.1;
-        }
-        if (this.input.isPressed('38')) {
-            this.player.model.rotation.x -= 0.1;
-        }
-        if (this.input.isPressed('40')) {
-            this.player.model.rotation.x += 0.1;
         }
 
         if (this.input.isPressed('37') && !this.player.hasFired()) {
-            projectile = new Projectile(this.player.getPosition(), -0.3, 0, -0.03);
+            projectile = new Projectile(this.player.getPosition(), -this.player.getSpeed(), 0, 0);
             this.entities.push(projectile);
             this.renderer.scene.add(projectile.getModel());
             this.player.firing();
         }
         if (this.input.isPressed('39') && !this.player.hasFired()) {
-            projectile = new Projectile(this.player.getPosition(), 0.3, 0, -0.03);
+            projectile = new Projectile(this.player.getPosition(), this.player.getSpeed(), 0, 0);
             this.entities.push(projectile);
             this.renderer.scene.add(projectile.getModel());
             this.player.firing();
         }
         if (this.input.isPressed('38') && !this.player.hasFired()) {
-            projectile = new Projectile(this.player.getPosition(), 0, 0.3, -0.03);
+            projectile = new Projectile(this.player.getPosition(), 0, this.player.getSpeed(), 0);
             this.entities.push(projectile);
             this.renderer.scene.add(projectile.getModel());
             this.player.firing();
         }
         if (this.input.isPressed('40') && !this.player.hasFired()) {
-            projectile = new Projectile(this.player.getPosition(), 0, -0.3, -0.03);
+            projectile = new Projectile(this.player.getPosition(), 0, -this.player.getSpeed(), 0);
             this.entities.push(projectile);
             this.renderer.scene.add(projectile.getModel());
             this.player.firing();
         }
-
-        this.renderer.update();
-    };
-
-    Game.prototype.draw = function () {
-        this.renderer.draw();
     };
     return Game;
 })();

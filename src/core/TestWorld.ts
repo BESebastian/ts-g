@@ -1,18 +1,22 @@
 class TestWorld {
 
     public  bound:      number;
+    public  width:      number;
+    public  height:     number;
     public  world:      number[][];
     public  meshes:     THREE.Object3D[][];
     private texture:    THREE.Texture;
 
     constructor(texture: THREE.Texture) {
         this.bound = 5;
+        this.width = 13;
+        this.height = 7;
         this.texture = texture;
 
         this.world = [];
         this.meshes = [];
 
-        for (var i = 0; i < this.bound; i++) {
+        for (var i = 0; i < this.height; i++) {
             this.world[i] = [];
             this.meshes[i] = [];
         }
@@ -22,28 +26,28 @@ class TestWorld {
     }
 
     private generateWorld():void {
-        for (var x = 0; x < this.bound; x++) {
-            for (var y = 0; y < this.bound; y++) {
-                this.world[x][y] = 1;
+        for (var y = 0; y < this.height; y++) {
+            for (var x = 0; x < this.width; x++) {
+                this.world[y][x] = 1;
             }
         }
     }
 
     private generateMeshes():void {
         var geometry = new THREE.CubeGeometry(this.bound, this.bound, 1);
-        var material = new THREE.MeshPhongMaterial({ map: this.texture });
-        for (var x = 0; x < this.bound; x++) {
-            for (var y = 0; y < this.bound; y++) {
-                this.meshes[x][y] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
-                this.meshes[x][y].position = new THREE.Vector3(x * this.bound, y * this.bound, -5);
-                this.meshes[x][y].receiveShadow = true;
-                this.meshes[x][y].castShadow = true;
+        var material = new THREE.MeshPhongMaterial(/*{ map: this.texture }*/);
+        for (var y = 0; y < this.height; y++) {
+            for (var x = 0; x < this.width; x++) {
+                this.meshes[y][x] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
+                this.meshes[y][x].position = new THREE.Vector3(x * this.bound, y * this.bound, -5);
+                this.meshes[y][x].receiveShadow = true;
+                this.meshes[y][x].castShadow = true;
             }
         }
     }
 
     public getModel(x: number, y: number):THREE.Object3D {
-        return this.meshes[x][y];
+        return this.meshes[y][x];
     }
 
 

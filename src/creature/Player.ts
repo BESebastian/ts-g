@@ -7,11 +7,13 @@ class Player extends Creature {
 
     constructor() {
         super();
-        var geometry = new THREE.CubeGeometry(1, 1, 1);
+        var size = 4;
+        var geometry = new THREE.CubeGeometry(size, size, size);
         var shadeMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
         var edgeMat = new THREE.MeshBasicMaterial({ color: 0x00FF00, wireframe: true, transparent: true, wireframeLinewidth: 3 });
         this.model = THREE.SceneUtils.createMultiMaterialObject(geometry, [shadeMat, edgeMat]);
         this.pos = new THREE.Vector3(12.5, 12.5, 2);
+        this.speed = 0.7;
         this.model.position = this.pos;
         this.model.castShadow = true;
         this.model.receiveShadow = true;

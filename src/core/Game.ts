@@ -31,14 +31,14 @@ class Game {
 
         this.renderer.scene.add(this.player.getModel());
 
-        for (var x = 0; x < 5; x++) {
-            for (var y = 0; y < 5; y++) {
+        for (var y = 0; y < this.tw.height; y++) {
+            for (var x = 0; x < this.tw.width; x++) {
                 this.renderer.scene.add(this.tw.getModel(x, y));
             }
         }
 
         this.entities.push(this.player);
-
+        this.renderer.moveCamera(this.player.getPosition());
         this.loop();
     }
 
@@ -48,71 +48,60 @@ class Game {
         requestAnimationFrame(this.loop.bind(this));
     }
 
+    private draw():void {
+        this.renderer.draw();
+    }
+
     private update():void {
         this.entities.forEach(function (entity) {
             entity.update();
         });
+        this.handleKeys();
+        this.renderer.update();
+    }
 
+    private handleKeys():void {
         var projectile = null;
         if (this.input.isPressed('65')) {
-            this.player.move(-0.1, 0);
+            this.player.move(-0.3, 0);
             this.renderer.moveCamera(this.player.getPosition());
         }
         if (this.input.isPressed('68')) {
-            this.player.move(0.1, 0);
+            this.player.move(0.3, 0);
             this.renderer.moveCamera(this.player.getPosition());
         }
         if (this.input.isPressed('83')) {
-            this.player.move(0, -0.1);
+            this.player.move(0, -0.3);
             this.renderer.moveCamera(this.player.getPosition());
         }
         if (this.input.isPressed('87')) {
-            this.player.move(0, 0.1);
+            this.player.move(0, 0.3);
             this.renderer.moveCamera(this.player.getPosition());
-        }
-        if (this.input.isPressed('37')) {
-            this.player.model.rotation.y -= 0.1;
-        }
-        if (this.input.isPressed('39')) {
-            this.player.model.rotation.y += 0.1;
-        }
-        if (this.input.isPressed('38')) {
-            this.player.model.rotation.x -= 0.1;
-        }
-        if (this.input.isPressed('40')) {
-            this.player.model.rotation.x += 0.1;
         }
 
         if (this.input.isPressed('37') && !this.player.hasFired()) {
-            projectile = new Projectile(this.player.getPosition(), -0.3, 0, -0.03);
+            projectile = new Projectile(this.player.getPosition(), -this.player.getSpeed(), 0, 0);
             this.entities.push(projectile);
             this.renderer.scene.add(projectile.getModel());
             this.player.firing();
         }
         if (this.input.isPressed('39') && !this.player.hasFired()) {
-            projectile = new Projectile(this.player.getPosition(), 0.3, 0, -0.03);
+            projectile = new Projectile(this.player.getPosition(), this.player.getSpeed(), 0, 0);
             this.entities.push(projectile);
             this.renderer.scene.add(projectile.getModel());
             this.player.firing();
         }
         if (this.input.isPressed('38') && !this.player.hasFired()) {
-            projectile = new Projectile(this.player.getPosition(), 0, 0.3, -0.03);
+            projectile = new Projectile(this.player.getPosition(), 0, this.player.getSpeed(), 0);
             this.entities.push(projectile);
             this.renderer.scene.add(projectile.getModel());
             this.player.firing();
         }
         if (this.input.isPressed('40') && !this.player.hasFired()) {
-            projectile = new Projectile(this.player.getPosition(), 0, -0.3, -0.03);
+            projectile = new Projectile(this.player.getPosition(), 0, -this.player.getSpeed(), 0);
             this.entities.push(projectile);
             this.renderer.scene.add(projectile.getModel());
             this.player.firing();
         }
-
-        this.renderer.update();
     }
-
-    private draw():void {
-        this.renderer.draw();
-    }
-
 }

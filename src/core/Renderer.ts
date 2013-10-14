@@ -38,7 +38,7 @@ class Renderer {
         light.position.set(0, 0, 100);
         this.scene.add(light);
 
-        this.camera.position.set(0, 0, 20);
+        this.camera.position.set(0, 0, 50);
     }
 
     public draw():void {

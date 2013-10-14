@@ -6,7 +6,7 @@ class Projectile {
 
     constructor(vector, velX: number, velY: number, velZ: number) {
         this.pos = new THREE.Vector3(vector.x, vector.y, vector.z);
-        var geometry = new THREE.CubeGeometry(0.5, 0.5, 0.5);
+        var geometry = new THREE.SphereGeometry(1, 10, 10);
         var shadeMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
         var edgeMat = new THREE.MeshBasicMaterial({ color: 0xFF0000, wireframe: true, transparent: true, wireframeLinewidth: 3 });
         this.model = THREE.SceneUtils.createMultiMaterialObject(geometry, [shadeMat, edgeMat]);
@@ -26,11 +26,6 @@ class Projectile {
         this.pos.y += this.velocity.y;
         if (this.pos.z - this.velocity.z > 0) {
             this.pos.z += this.velocity.z;
-        }
-        if (this.velocity.x > this.velocity.y) {
-            this.model.rotation.x += 0.3;
-        } else {
-            this.model.rotation.y += 0.3;
         }
         this.model.position = this.pos;
     }
