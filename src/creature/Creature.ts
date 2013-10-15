@@ -1,4 +1,4 @@
-class Creature {
+class Creature implements Drawable, Updatable {
 
     public  model:  THREE.Object3D;
     public  pos:    THREE.Vector3;
@@ -6,13 +6,8 @@ class Creature {
 
     constructor() {}
 
-    public update():void {
-    
-    }
-
-    public draw():void {
-    
-    }
+    public draw():void {}
+    public update():void {}
 
     public getModel():THREE.Object3D {
         return this.model;

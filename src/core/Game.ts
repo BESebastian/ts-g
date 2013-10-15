@@ -4,7 +4,7 @@
 ///<reference path='../item/ItemFactory.ts' />
 ///<reference path='../creature/CreatureFactory.ts' />
 ///<reference path='../entities/Projectile.ts' />
-///<reference path='TestWorld.ts' />
+///<reference path='TestWorld2.ts' />
 
 class Game {
 
@@ -15,7 +15,7 @@ class Game {
     private assets:     AssetManager;
     private cf:         CreatureFactory;
     private if:         ItemFactory;
-    private tw:         TestWorld;
+    private tw:         TestWorld2;
     private entities;
     private width:      number;
     private height:     number;
@@ -29,24 +29,23 @@ class Game {
         this.tileSize = 5;
 
         var spawnPos = new THREE.Vector3(
-            ((this.width * this.tileSize) / 2) - (this.tileSize / 2),
-            ((this.height * this.tileSize) / 2) - (this.tileSize / 2),
+            ((this.width * this.tileSize) / 2) + (this.tileSize / 2),
+            ((this.height * this.tileSize) / 2) + (this.tileSize / 2),
             0
         );
-        console.log(spawnPos);
 
         this.renderer = new Renderer(this.width, this.height, this.tileSize);
         this.input    = new Input();
         this.cf       = new CreatureFactory();
         this.if       = new ItemFactory();
         this.player   = this.cf.spawnPlayer(spawnPos);
-        this.tw       = new TestWorld(THREE.ImageUtils.loadTexture('../assets/test.png'), this.width, this.height, this.tileSize);
+        this.tw       = new TestWorld2(THREE.ImageUtils.loadTexture('../assets/test.png'), this.tileSize);
         this.entities = [];
 
         this.renderer.scene.add(this.player.getModel());
 
-        for (var y = 0; y < this.tw.height; y++) {
-            for (var x = 0; x < this.tw.width; x++) {
+        for (var y = 0; y < this.tw.map.length; y++) {
+            for (var x = 0; x < this.tw.map[0].length; x++) {
                 this.renderer.scene.add(this.tw.getModel(x, y));
             }
         }

@@ -1,4 +1,4 @@
-class Projectile {
+class Projectile implements Updatable {
 
     public  pos:        THREE.Vector3;
     public  model:      THREE.Object3D;

@@ -1,7 +1,7 @@
-class Item {
+class Item implements Drawable {
 
-    constructor() {
-        
-    }
+    constructor() {}
+
+    public draw():void {}
 
 }
