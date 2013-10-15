@@ -1,4 +1,4 @@
-class Creature implements Drawable, Updatable {
+class Creature implements Drawable, Updatable, Collider {
 
     public  model:  THREE.Object3D;
     public  pos:    THREE.Vector3;
@@ -23,6 +23,10 @@ class Creature implements Drawable, Updatable {
 
     public getSpeed():number {
         return this.speed;
+    }
+
+    public checkCollision():boolean {
+        return false;
     }
 
     public move(x: number, y: number):void {

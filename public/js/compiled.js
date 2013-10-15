@@ -107,6 +107,10 @@ var Creature = (function () {
         return this.speed;
     };
 
+    Creature.prototype.checkCollision = function () {
+        return false;
+    };
+
     Creature.prototype.move = function (x, y) {
         this.pos.x += x;
         this.pos.y += y;
@@ -181,7 +185,32 @@ var Projectile = (function () {
             y: velY,
             z: 0
         };
+        this.caster = new THREE.Raycaster();
+        this.distance = 40;
+        this.rays = [
+            new THREE.Vector3(0, 0, 1),
+            new THREE.Vector3(1, 0, 1),
+            new THREE.Vector3(1, 0, 0),
+            new THREE.Vector3(1, 0, -1),
+            new THREE.Vector3(0, 0, -1),
+            new THREE.Vector3(-1, 0, -1),
+            new THREE.Vector3(-1, 0, 0),
+            new THREE.Vector3(-1, 0, 1)
+        ];
     }
+    Projectile.prototype.checkCollision = function (obstacles) {
+        var collisions = [];
+        for (var i = 0; i < this.rays.length; i++) {
+            this.caster.set(this.model.position, this.rays[i]);
+            collisions = this.caster.intersectObjects(obstacles, true);
+            if (collisions.length > 0 && collisions[0].distance <= this.distance) {
+                console.log('collided');
+                return true;
+            }
+        }
+        return false;
+    };
+
     Projectile.prototype.update = function () {
         this.pos.x += this.velocity.x;
         this.pos.y += this.velocity.y;
@@ -214,6 +243,7 @@ var TestWorld2 = (function () {
         ];
 
         this.meshes = [];
+        this.obstacles = [];
 
         for (var i = 0; i < this.map.length; i++) {
             this.meshes[i] = [];
@@ -231,8 +261,17 @@ var TestWorld2 = (function () {
                 this.meshes[y][x].position = pos;
                 this.meshes[y][x].receiveShadow = true;
                 this.meshes[y][x].castShadow = true;
+                this.obstacles.push(this.meshes[y][x]);
             }
         }
+    };
+
+    TestWorld2.prototype.checkCollision = function (x, y) {
+        return (this.obstacles[y][x] === true);
+    };
+
+    TestWorld2.prototype.getObstacles = function () {
+        return this.obstacles;
     };
 
     TestWorld2.prototype.getModel = function (x, y) {
@@ -281,7 +320,12 @@ var Game = (function () {
     };
 
     Game.prototype.update = function () {
+        var _this = this;
         this.entities.forEach(function (entity) {
+            if (entity.checkCollision(_this.tw.getObstacles())) {
+                _this.entities.splice(_this.entities.indexOf(entity), 1);
+                _this.renderer.scene.remove(entity.getModel());
+            }
             entity.update();
         });
         this.handleKeys();

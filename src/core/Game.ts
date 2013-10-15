@@ -66,7 +66,12 @@ class Game {
     }
 
     private update():void {
+        var _this = this;
         this.entities.forEach(function (entity) {
+            if (entity.checkCollision(_this.tw.getObstacles())) {
+                _this.entities.splice(_this.entities.indexOf(entity), 1);
+                _this.renderer.scene.remove(entity.getModel());
+            }
             entity.update();
         });
         this.handleKeys();

@@ -2,8 +2,9 @@ class TestWorld2 {
 
     public  tileSize:   number;
     public  meshes:     THREE.Object3D[][];
+    public  map;
     private texture:    THREE.Texture;
-    public map;
+    private obstacles;
 
     constructor(texture, tileSize) {
         this.tileSize = tileSize;
@@ -22,6 +23,7 @@ class TestWorld2 {
         ];
 
         this.meshes = [];
+        this.obstacles = [];
 
         for (var i = 0; i < this.map.length; i++) {
             this.meshes[i] = [];
@@ -42,8 +44,17 @@ class TestWorld2 {
                 this.meshes[y][x].position = pos;
                 this.meshes[y][x].receiveShadow = true;
                 this.meshes[y][x].castShadow = true;
+                this.obstacles.push(this.meshes[y][x]);
             }
         }
+    }
+
+    public checkCollision(x: number, y: number):boolean {
+        return (this.obstacles[y][x] === true);
+    }
+
+    public getObstacles() {
+        return this.obstacles;
     }
 
     public getModel(x: number, y: number):THREE.Object3D {
