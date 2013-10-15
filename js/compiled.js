@@ -1,8 +1,8 @@
 var Renderer = (function () {
     function Renderer(width, height, tileSize) {
         this.container = document.getElementById('container');
-        this.WIDTH = this.container.offsetWidth;
-        this.HEIGHT = this.container.offsetHeight;
+        this.WIDTH = 1280;
+        this.HEIGHT = 720;
         this.VIEW_ANGLE = 45;
         this.ASPECT = this.WIDTH / this.HEIGHT;
         this.NEAR = 0.1;
@@ -20,7 +20,7 @@ var Renderer = (function () {
         var light = new THREE.SpotLight(0xffffff, 0.8);
         light.angle = Math.PI / 2;
         light.castShadow = true;
-        light.position.set(0, 0, 100);
+        light.position.set(width * tileSize, height * tileSize, 100);
         this.scene.add(light);
 
         this.camera.position.set(0, 0, 50);
@@ -41,11 +41,18 @@ var Renderer = (function () {
 var Input = (function () {
     function Input() {
         this.keys = [];
+        this.reserved = [65, 68, 83, 87, 37, 39, 38, 40];
         document.addEventListener('keydown', this.keyDown.bind(this), false);
         document.addEventListener('keyup', this.keyUp.bind(this), false);
     }
+    Input.prototype.inReserved = function (code) {
+        return (this.reserved.indexOf(code) !== -1);
+    };
+
     Input.prototype.keyDown = function (event) {
-        event.preventDefault();
+        if (this.inReserved(event.keyCode)) {
+            event.preventDefault();
+        }
         this.keys[event.keyCode] = true;
     };
 
@@ -67,6 +74,8 @@ var AssetManager = (function () {
 var Item = (function () {
     function Item() {
     }
+    Item.prototype.draw = function () {
+    };
     return Item;
 })();
 var ItemFactory = (function () {
@@ -77,10 +86,9 @@ var ItemFactory = (function () {
 var Creature = (function () {
     function Creature() {
     }
-    Creature.prototype.update = function () {
-    };
-
     Creature.prototype.draw = function () {
+    };
+    Creature.prototype.update = function () {
     };
 
     Creature.prototype.getModel = function () {
@@ -188,50 +196,49 @@ var Projectile = (function () {
     };
     return Projectile;
 })();
-var TestWorld = (function () {
-    function TestWorld(texture, width, height, tileSize) {
-        this.bound = tileSize;
-        this.width = width;
-        this.height = height;
+var TestWorld2 = (function () {
+    function TestWorld2(texture, tileSize) {
+        this.tileSize = tileSize;
         this.texture = texture;
 
-        this.world = [];
+        this.map = [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1],
+            [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1],
+            [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1],
+            [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1],
+            [1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        ];
+
         this.meshes = [];
 
-        for (var i = 0; i < this.height; i++) {
-            this.world[i] = [];
+        for (var i = 0; i < this.map.length; i++) {
             this.meshes[i] = [];
         }
 
-        this.generateWorld();
         this.generateMeshes();
     }
-    TestWorld.prototype.generateWorld = function () {
-        for (var y = 0; y < this.height; y++) {
-            for (var x = 0; x < this.width; x++) {
-                this.world[y][x] = 1;
-            }
-        }
-    };
-
-    TestWorld.prototype.generateMeshes = function () {
-        var geometry = new THREE.CubeGeometry(this.bound, this.bound, 1);
-        var material = new THREE.MeshPhongMaterial({ map: this.texture });
-        var material2 = new THREE.MeshBasicMaterial({ wireframe: true, wireframeLinewidth: 3 });
-        for (var y = 0; y < this.height; y++) {
-            for (var x = 0; x < this.width; x++) {
-                this.meshes[y][x] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material, material2]);
-                this.meshes[y][x].position = new THREE.Vector3(x * this.bound, y * this.bound, -5);
+    TestWorld2.prototype.generateMeshes = function () {
+        var geometry = new THREE.CubeGeometry(this.tileSize, this.tileSize, this.tileSize);
+        var material = new THREE.MeshPhongMaterial();
+        for (var y = 0; y < this.map.length; y++) {
+            for (var x = 0; x < this.map[0].length; x++) {
+                var pos = (this.map[y][x] === 1) ? new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1) : new THREE.Vector3(x * this.tileSize, y * this.tileSize, -3);
+                this.meshes[y][x] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
+                this.meshes[y][x].position = pos;
                 this.meshes[y][x].receiveShadow = true;
                 this.meshes[y][x].castShadow = true;
             }
         }
     };
 
-    TestWorld.prototype.getModel = function (x, y) {
+    TestWorld2.prototype.getModel = function (x, y) {
         return this.meshes[y][x];
     };
-    return TestWorld;
+    return TestWorld2;
 })();
 var Game = (function () {
     function Game() {
@@ -241,21 +248,20 @@ var Game = (function () {
         this.height = 7;
         this.tileSize = 5;
 
-        var spawnPos = new THREE.Vector3(((this.width * this.tileSize) / 2) - (this.tileSize / 2), ((this.height * this.tileSize) / 2) - (this.tileSize / 2), 0);
-        console.log(spawnPos);
+        var spawnPos = new THREE.Vector3(((this.width * this.tileSize) / 2) + (this.tileSize / 2), ((this.height * this.tileSize) / 2) + (this.tileSize / 2), 0);
 
         this.renderer = new Renderer(this.width, this.height, this.tileSize);
         this.input = new Input();
         this.cf = new CreatureFactory();
         this.if = new ItemFactory();
         this.player = this.cf.spawnPlayer(spawnPos);
-        this.tw = new TestWorld(THREE.ImageUtils.loadTexture('../assets/test.png'), this.width, this.height, this.tileSize);
+        this.tw = new TestWorld2(THREE.ImageUtils.loadTexture('../assets/test.png'), this.tileSize);
         this.entities = [];
 
         this.renderer.scene.add(this.player.getModel());
 
-        for (var y = 0; y < this.tw.height; y++) {
-            for (var x = 0; x < this.tw.width; x++) {
+        for (var y = 0; y < this.tw.map.length; y++) {
+            for (var x = 0; x < this.tw.map[0].length; x++) {
                 this.renderer.scene.add(this.tw.getModel(x, y));
             }
         }
