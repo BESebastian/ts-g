@@ -23,7 +23,7 @@ class Projectile implements Updatable, Collider {
             z: 0
         };
         this.caster = new THREE.Raycaster();
-        this.distance = 40;
+        this.distance = 5;
         this.rays = [
             new THREE.Vector3(0, 0, 1),
             new THREE.Vector3(1, 0, 1),

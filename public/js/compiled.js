@@ -186,7 +186,7 @@ var Projectile = (function () {
             z: 0
         };
         this.caster = new THREE.Raycaster();
-        this.distance = 40;
+        this.distance = 5;
         this.rays = [
             new THREE.Vector3(0, 0, 1),
             new THREE.Vector3(1, 0, 1),
@@ -261,13 +261,11 @@ var TestWorld2 = (function () {
                 this.meshes[y][x].position = pos;
                 this.meshes[y][x].receiveShadow = true;
                 this.meshes[y][x].castShadow = true;
-                this.obstacles.push(this.meshes[y][x]);
+                if (this.map[y][x] === 1) {
+                    this.obstacles.push(this.meshes[y][x]);
+                }
             }
         }
-    };
-
-    TestWorld2.prototype.checkCollision = function (x, y) {
-        return (this.obstacles[y][x] === true);
     };
 
     TestWorld2.prototype.getObstacles = function () {
@@ -336,19 +334,15 @@ var Game = (function () {
         var projectile = null;
         if (this.input.isPressed('65')) {
             this.player.move(-0.3, 0);
-            this.renderer.moveCamera(this.player.getPosition());
         }
         if (this.input.isPressed('68')) {
             this.player.move(0.3, 0);
-            this.renderer.moveCamera(this.player.getPosition());
         }
         if (this.input.isPressed('83')) {
             this.player.move(0, -0.3);
-            this.renderer.moveCamera(this.player.getPosition());
         }
         if (this.input.isPressed('87')) {
             this.player.move(0, 0.3);
-            this.renderer.moveCamera(this.player.getPosition());
         }
 
         if (this.input.isPressed('37') && !this.player.hasFired()) {

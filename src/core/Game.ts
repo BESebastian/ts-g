@@ -82,19 +82,15 @@ class Game {
         var projectile = null;
         if (this.input.isPressed('65')) {
             this.player.move(-0.3, 0);
-            this.renderer.moveCamera(this.player.getPosition());
         }
         if (this.input.isPressed('68')) {
             this.player.move(0.3, 0);
-            this.renderer.moveCamera(this.player.getPosition());
         }
         if (this.input.isPressed('83')) {
             this.player.move(0, -0.3);
-            this.renderer.moveCamera(this.player.getPosition());
         }
         if (this.input.isPressed('87')) {
             this.player.move(0, 0.3);
-            this.renderer.moveCamera(this.player.getPosition());
         }
 
         if (this.input.isPressed('37') && !this.player.hasFired()) {

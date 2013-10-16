@@ -44,13 +44,11 @@ class TestWorld2 {
                 this.meshes[y][x].position = pos;
                 this.meshes[y][x].receiveShadow = true;
                 this.meshes[y][x].castShadow = true;
-                this.obstacles.push(this.meshes[y][x]);
+                if (this.map[y][x] === 1) {
+                    this.obstacles.push(this.meshes[y][x]);
+                }
             }
         }
-    }
-
-    public checkCollision(x: number, y: number):boolean {
-        return (this.obstacles[y][x] === true);
     }
 
     public getObstacles() {
