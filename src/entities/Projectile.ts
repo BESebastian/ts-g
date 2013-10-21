@@ -25,15 +25,12 @@ class Projectile implements Updatable, Collider {
 
         // Collision detection guff
         this.caster = new THREE.Raycaster();
-        this.distance = 5;
+        this.distance = 1;
         this.rays = [
             new THREE.Vector3(1, 0, 0),
-            new THREE.Vector3(1, 1, 0),
-            new THREE.Vector3(0, 1, 0),
-            new THREE.Vector3(1, -1, 0),
-            new THREE.Vector3(-1, -1, 0),
             new THREE.Vector3(-1, 0, 0),
-            new THREE.Vector3(0, -1, 0)
+            new THREE.Vector3(0, 1, 0),
+            new THREE.Vector3(0, -1, 0),
         ];
     }
 
