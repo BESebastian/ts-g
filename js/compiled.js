@@ -107,11 +107,11 @@ var Creature = (function () {
         return this.speed;
     };
 
-    Creature.prototype.checkCollision = function () {
+    Creature.prototype.checkCollision = function (obstacles) {
         return false;
     };
 
-    Creature.prototype.move = function (x, y) {
+    Creature.prototype.move = function (obstacles, x, y) {
         this.pos.x += x;
         this.pos.y += y;
     };
@@ -133,20 +133,49 @@ var Player = (function (_super) {
         var edgeMat = new THREE.MeshBasicMaterial({ color: 0x00FF00, wireframe: true, transparent: true, wireframeLinewidth: 3 });
         this.model = THREE.SceneUtils.createMultiMaterialObject(geometry, [shadeMat, edgeMat]);
         this.pos = new THREE.Vector3(12.5, 12.5, 2);
-        this.speed = 0.7;
+        this.speed = 0.3;
+        this.shotSpeed = 0.7;
         this.model.position = this.pos;
         this.model.castShadow = true;
         this.model.receiveShadow = true;
         this.fired = false;
         this.firingCooldown = 0;
+
+        this.caster = new THREE.Raycaster();
+        this.distance = 5;
+        this.rays = [
+            new THREE.Vector3(-1, 0, 0),
+            new THREE.Vector3(1, 0, 0),
+            new THREE.Vector3(0, 1, 0),
+            new THREE.Vector3(0, -1, 0)
+        ];
     }
+    Player.prototype.checkCollision = function (obstacles) {
+        return false;
+    };
+
     Player.prototype.update = function () {
         if (this.firingCooldown > 0) {
             this.firingCooldown -= 1;
         } else {
             this.fired = false;
         }
+        this.model.rotation.x += 0.01;
+        this.model.rotation.y += 0.01;
         this.model.position = this.pos;
+    };
+
+    Player.prototype.move = function (obstacles, x, y) {
+        var collisions = [];
+        for (var i = 0; i < this.rays.length; i++) {
+            this.caster.set(this.model.position, this.rays[i]);
+            collisions = this.caster.intersectObjects(obstacles, true);
+            if (collisions.length > 0 && collisions[0].distance <= this.distance) {
+                console.log(collisions);
+            }
+        }
+        this.pos.x += x;
+        this.pos.y += y;
     };
 
     Player.prototype.hasFired = function () {
@@ -156,6 +185,10 @@ var Player = (function (_super) {
     Player.prototype.firing = function () {
         this.firingCooldown = 50;
         this.fired = true;
+    };
+
+    Player.prototype.getShotSpeed = function () {
+        return this.shotSpeed;
     };
     return Player;
 })(Creature);
@@ -201,7 +234,6 @@ var Projectile = (function () {
             this.caster.set(this.model.position, this.rays[i]);
             collisions = this.caster.intersectObjects(obstacles, true);
             if (collisions.length > 0 && collisions[0].distance <= this.distance) {
-                console.log('collided');
                 return true;
             }
         }
@@ -230,11 +262,11 @@ var TestWorld2 = (function () {
         this.map = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1],
-            [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1],
-            [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1],
-            [1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1],
-            [1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         ];
@@ -269,6 +301,15 @@ var TestWorld2 = (function () {
         return this.obstacles;
     };
 
+    TestWorld2.prototype.testUpdate = function () {
+        this.meshes.forEach(function (mesh) {
+            mesh.forEach(function (m) {
+                m.rotation.x -= 0.01;
+                m.rotation.y -= 0.01;
+            });
+        });
+    };
+
     TestWorld2.prototype.getModel = function (x, y) {
         return this.meshes[y][x];
     };
@@ -282,25 +323,24 @@ var Game = (function () {
         this.height = 7;
         this.tileSize = 5;
 
-        var spawnPos = new THREE.Vector3(((this.width * this.tileSize) / 2) + (this.tileSize / 2), ((this.height * this.tileSize) / 2) + (this.tileSize / 2), 0);
+        var spawnPos = new THREE.Vector3(((this.width * this.tileSize) / 2) + (this.tileSize / 2), ((this.height * this.tileSize) / 2) + (this.tileSize / 2), 1.5);
 
         this.renderer = new Renderer(this.width, this.height, this.tileSize);
         this.input = new Input();
         this.cf = new CreatureFactory();
         this.if = new ItemFactory();
         this.player = this.cf.spawnPlayer(spawnPos);
-        this.tw = new TestWorld2(THREE.ImageUtils.loadTexture('../assets/test.png'), this.tileSize);
+        this.world = new TestWorld2(THREE.ImageUtils.loadTexture('../assets/test.png'), this.tileSize);
         this.entities = [];
 
         this.renderer.scene.add(this.player.getModel());
 
-        for (var y = 0; y < this.tw.map.length; y++) {
-            for (var x = 0; x < this.tw.map[0].length; x++) {
-                this.renderer.scene.add(this.tw.getModel(x, y));
+        for (var y = 0; y < this.world.map.length; y++) {
+            for (var x = 0; x < this.world.map[0].length; x++) {
+                this.renderer.scene.add(this.world.getModel(x, y));
             }
         }
 
-        this.entities.push(this.player);
         this.renderer.moveCamera(this.player.getPosition());
         this.loop();
     }
@@ -316,8 +356,10 @@ var Game = (function () {
 
     Game.prototype.update = function () {
         var _this = this;
+        this.player.update();
+        this.world.testUpdate();
         this.entities.forEach(function (entity) {
-            if (entity.checkCollision(_this.tw.getObstacles())) {
+            if (entity.checkCollision(_this.world.getObstacles())) {
                 _this.entities.splice(_this.entities.indexOf(entity), 1);
                 _this.renderer.scene.remove(entity.getModel());
             }
@@ -329,39 +371,40 @@ var Game = (function () {
 
     Game.prototype.handleKeys = function () {
         var projectile = null;
+        var obstacles = this.world.getObstacles();
         if (this.input.isPressed('65')) {
-            this.player.move(-0.3, 0);
+            this.player.move(obstacles, -this.player.speed, 0);
         }
         if (this.input.isPressed('68')) {
-            this.player.move(0.3, 0);
+            this.player.move(obstacles, this.player.speed, 0);
         }
         if (this.input.isPressed('83')) {
-            this.player.move(0, -0.3);
+            this.player.move(obstacles, 0, -this.player.speed);
         }
         if (this.input.isPressed('87')) {
-            this.player.move(0, 0.3);
+            this.player.move(obstacles, 0, this.player.speed);
         }
 
         if (this.input.isPressed('37') && !this.player.hasFired()) {
-            projectile = new Projectile(this.player.getPosition(), -this.player.getSpeed(), 0, 0);
+            projectile = new Projectile(this.player.getPosition(), -this.player.getShotSpeed(), 0, 0);
             this.entities.push(projectile);
             this.renderer.scene.add(projectile.getModel());
             this.player.firing();
         }
         if (this.input.isPressed('39') && !this.player.hasFired()) {
-            projectile = new Projectile(this.player.getPosition(), this.player.getSpeed(), 0, 0);
+            projectile = new Projectile(this.player.getPosition(), this.player.getShotSpeed(), 0, 0);
             this.entities.push(projectile);
             this.renderer.scene.add(projectile.getModel());
             this.player.firing();
         }
         if (this.input.isPressed('38') && !this.player.hasFired()) {
-            projectile = new Projectile(this.player.getPosition(), 0, this.player.getSpeed(), 0);
+            projectile = new Projectile(this.player.getPosition(), 0, this.player.getShotSpeed(), 0);
             this.entities.push(projectile);
             this.renderer.scene.add(projectile.getModel());
             this.player.firing();
         }
         if (this.input.isPressed('40') && !this.player.hasFired()) {
-            projectile = new Projectile(this.player.getPosition(), 0, -this.player.getSpeed(), 0);
+            projectile = new Projectile(this.player.getPosition(), 0, -this.player.getShotSpeed(), 0);
             this.entities.push(projectile);
             this.renderer.scene.add(projectile.getModel());
             this.player.firing();
