@@ -185,17 +185,17 @@ var Projectile = (function () {
             y: velY,
             z: 0
         };
+
         this.caster = new THREE.Raycaster();
         this.distance = 5;
         this.rays = [
-            new THREE.Vector3(0, 0, 1),
-            new THREE.Vector3(1, 0, 1),
             new THREE.Vector3(1, 0, 0),
-            new THREE.Vector3(1, 0, -1),
-            new THREE.Vector3(0, 0, -1),
-            new THREE.Vector3(-1, 0, -1),
+            new THREE.Vector3(1, 1, 0),
+            new THREE.Vector3(0, 1, 0),
+            new THREE.Vector3(1, -1, 0),
+            new THREE.Vector3(-1, -1, 0),
             new THREE.Vector3(-1, 0, 0),
-            new THREE.Vector3(-1, 0, 1)
+            new THREE.Vector3(0, -1, 0)
         ];
     }
     Projectile.prototype.checkCollision = function (obstacles) {
