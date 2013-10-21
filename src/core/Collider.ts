@@ -1,3 +1,6 @@
 interface Collider {
-    checkCollision(obstacles):boolean;
+    rays;
+    distance: number;
+    caster: THREE.Raycaster;
+    checkCollision(obstacles): boolean;
 }

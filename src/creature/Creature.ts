@@ -1,4 +1,4 @@
-class Creature implements Drawable, Updatable, Collider {
+class Creature implements Drawable, Updatable {
 
     public  model:  THREE.Object3D;
     public  pos:    THREE.Vector3;

@@ -3,9 +3,9 @@ class Projectile implements Updatable, Collider {
     public  pos:        THREE.Vector3;
     public  model:      THREE.Object3D;
     public  velocity:   any;
-    private rays;
-    private distance:   number;
-    private caster:     THREE.Raycaster;
+    public  rays;
+    public  distance:   number;
+    public  caster:     THREE.Raycaster;
 
     constructor(vector, velX: number, velY: number, velZ: number) {
         this.pos = new THREE.Vector3(vector.x, vector.y, vector.z);
@@ -22,17 +22,18 @@ class Projectile implements Updatable, Collider {
             y: velY,
             z: 0
         };
+
+        // Collision detection guff
         this.caster = new THREE.Raycaster();
         this.distance = 5;
         this.rays = [
-            new THREE.Vector3(0, 0, 1),
-            new THREE.Vector3(1, 0, 1),
             new THREE.Vector3(1, 0, 0),
-            new THREE.Vector3(1, 0, -1),
-            new THREE.Vector3(0, 0, -1),
-            new THREE.Vector3(-1, 0, -1),
+            new THREE.Vector3(1, 1, 0),
+            new THREE.Vector3(0, 1, 0),
+            new THREE.Vector3(1, -1, 0),
+            new THREE.Vector3(-1, -1, 0),
             new THREE.Vector3(-1, 0, 0),
-            new THREE.Vector3(-1, 0, 1)
+            new THREE.Vector3(0, -1, 0)
         ];
     }
 
