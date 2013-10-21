@@ -40,7 +40,6 @@ class Projectile implements Updatable, Collider {
             this.caster.set(this.model.position, this.rays[i]);
             collisions = this.caster.intersectObjects(obstacles, true);
             if (collisions.length > 0 && collisions[0].distance <= this.distance) {
-                console.log('collided');
                 return true;
             }
         }

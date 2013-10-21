@@ -25,11 +25,11 @@ class Creature implements Drawable, Updatable {
         return this.speed;
     }
 
-    public checkCollision():boolean {
+    public checkCollision(obstacles):boolean {
         return false;
     }
 
-    public move(x: number, y: number):void {
+    public move(obstacles, x: number, y: number):void {
         this.pos.x += x;
         this.pos.y += y;
     }

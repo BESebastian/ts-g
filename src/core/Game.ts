@@ -15,7 +15,7 @@ class Game {
     private assets:     AssetManager;
     private cf:         CreatureFactory;
     private if:         ItemFactory;
-    private tw:         TestWorld2;
+    private world:      TestWorld2;
     private entities;
     private width:      number;
     private height:     number;
@@ -31,7 +31,7 @@ class Game {
         var spawnPos = new THREE.Vector3(
             ((this.width * this.tileSize) / 2) + (this.tileSize / 2),
             ((this.height * this.tileSize) / 2) + (this.tileSize / 2),
-            0
+            1.5
         );
 
         this.renderer = new Renderer(this.width, this.height, this.tileSize);
@@ -39,18 +39,17 @@ class Game {
         this.cf       = new CreatureFactory();
         this.if       = new ItemFactory();
         this.player   = this.cf.spawnPlayer(spawnPos);
-        this.tw       = new TestWorld2(THREE.ImageUtils.loadTexture('../assets/test.png'), this.tileSize);
+        this.world    = new TestWorld2(THREE.ImageUtils.loadTexture('../assets/test.png'), this.tileSize);
         this.entities = [];
 
         this.renderer.scene.add(this.player.getModel());
 
-        for (var y = 0; y < this.tw.map.length; y++) {
-            for (var x = 0; x < this.tw.map[0].length; x++) {
-                this.renderer.scene.add(this.tw.getModel(x, y));
+        for (var y = 0; y < this.world.map.length; y++) {
+            for (var x = 0; x < this.world.map[0].length; x++) {
+                this.renderer.scene.add(this.world.getModel(x, y));
             }
         }
 
-        this.entities.push(this.player);
         this.renderer.moveCamera(this.player.getPosition());
         this.loop();
     }
@@ -67,8 +66,10 @@ class Game {
 
     private update():void {
         var _this = this;
+        this.player.update();
+        this.world.testUpdate();
         this.entities.forEach(function (entity) {
-            if (entity.checkCollision(_this.tw.getObstacles())) {
+            if (entity.checkCollision(_this.world.getObstacles())) {
                 _this.entities.splice(_this.entities.indexOf(entity), 1);
                 _this.renderer.scene.remove(entity.getModel());
             }
@@ -80,39 +81,40 @@ class Game {
 
     private handleKeys():void {
         var projectile = null;
+        var obstacles = this.world.getObstacles();
         if (this.input.isPressed('65')) {
-            this.player.move(-0.3, 0);
+            this.player.move(obstacles, -this.player.speed, 0);
         }
         if (this.input.isPressed('68')) {
-            this.player.move(0.3, 0);
+            this.player.move(obstacles, this.player.speed, 0);
         }
         if (this.input.isPressed('83')) {
-            this.player.move(0, -0.3);
+            this.player.move(obstacles, 0, -this.player.speed);
         }
         if (this.input.isPressed('87')) {
-            this.player.move(0, 0.3);
+            this.player.move(obstacles, 0, this.player.speed);
         }
 
         if (this.input.isPressed('37') && !this.player.hasFired()) {
-            projectile = new Projectile(this.player.getPosition(), -this.player.getSpeed(), 0, 0);
+            projectile = new Projectile(this.player.getPosition(), -this.player.getShotSpeed(), 0, 0);
             this.entities.push(projectile);
             this.renderer.scene.add(projectile.getModel());
             this.player.firing();
         }
         if (this.input.isPressed('39') && !this.player.hasFired()) {
-            projectile = new Projectile(this.player.getPosition(), this.player.getSpeed(), 0, 0);
+            projectile = new Projectile(this.player.getPosition(), this.player.getShotSpeed(), 0, 0);
             this.entities.push(projectile);
             this.renderer.scene.add(projectile.getModel());
             this.player.firing();
         }
         if (this.input.isPressed('38') && !this.player.hasFired()) {
-            projectile = new Projectile(this.player.getPosition(), 0, this.player.getSpeed(), 0);
+            projectile = new Projectile(this.player.getPosition(), 0, this.player.getShotSpeed(), 0);
             this.entities.push(projectile);
             this.renderer.scene.add(projectile.getModel());
             this.player.firing();
         }
         if (this.input.isPressed('40') && !this.player.hasFired()) {
-            projectile = new Projectile(this.player.getPosition(), 0, -this.player.getSpeed(), 0);
+            projectile = new Projectile(this.player.getPosition(), 0, -this.player.getShotSpeed(), 0);
             this.entities.push(projectile);
             this.renderer.scene.add(projectile.getModel());
             this.player.firing();
