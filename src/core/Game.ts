@@ -67,7 +67,7 @@ class Game {
     private update():void {
         var _this = this;
         this.player.update();
-        this.world.testUpdate();
+        //this.world.testUpdate();
         this.entities.forEach(function (entity) {
             if (entity.checkCollision(_this.world.getObstacles())) {
                 _this.entities.splice(_this.entities.indexOf(entity), 1);

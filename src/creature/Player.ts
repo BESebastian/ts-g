@@ -26,7 +26,7 @@ class Player extends Creature implements Collider {
         this.firingCooldown = 0;
 
         this.caster = new THREE.Raycaster();
-        this.distance = 5;
+        this.distance = 2.3;
         this.rays = [
             new THREE.Vector3(-1, 0, 0),
             new THREE.Vector3(1, 0, 0),
@@ -45,22 +45,37 @@ class Player extends Creature implements Collider {
         } else {
             this.fired = false;
         }
-        this.model.rotation.x += 0.01;
-        this.model.rotation.y += 0.01;
+        //this.model.rotation.x += 0.01;
+        //this.model.rotation.y += 0.01;
         this.model.position = this.pos;
     }
 
     public move(obstacles, x: number, y: number):void {
         var collisions = [];
+        var _this = this;
+        var velX = x;
+        var velY = y;
         for (var i = 0; i < this.rays.length; i++) {
             this.caster.set(this.model.position, this.rays[i]);
             collisions = this.caster.intersectObjects(obstacles, true);
-            if (collisions.length > 0 && collisions[0].distance <= this.distance) {
-                console.log(collisions);
+            if (collisions.length > 0) {
+                collisions.forEach(function (collision) {
+                    if (collision.distance <= _this.distance) {
+                        if (collision.faceIndex === 3 && y > 0) {
+                            velY = 0;
+                        } else if (collision.faceIndex === 2 && y < 0) {
+                            velY = 0;
+                        } else if (collision.faceIndex === 0 && x < 0) {
+                            velX = 0;
+                        } else if (collision.faceIndex === 1 && x > 0) {
+                            velX = 0;
+                        }
+                    }
+                });
             }
         }
-        this.pos.x += x;
-        this.pos.y += y;
+        this.pos.x += velX;
+        this.pos.y += velY;
     }
 
     public hasFired():boolean {
