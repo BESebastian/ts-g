@@ -115,6 +115,10 @@ var Creature = (function () {
         this.pos.x += x;
         this.pos.y += y;
     };
+
+    Creature.prototype.getHp = function () {
+        return this.hp;
+    };
     return Creature;
 })();
 var __extends = this.__extends || function (d, b) {
@@ -140,7 +144,7 @@ var Player = (function (_super) {
         this.model.receiveShadow = true;
         this.fired = false;
         this.firingCooldown = 0;
-
+        this.hp = 3;
         this.caster = new THREE.Raycaster();
         this.distance = 2.3;
         this.rays = [
@@ -329,6 +333,29 @@ var TestWorld2 = (function () {
     };
     return TestWorld2;
 })();
+var UI = (function () {
+    function UI() {
+        this.hp = 0;
+
+        var geometry = new THREE.CubeGeometry(2, 2, 2);
+        var material = new THREE.MeshPhongMaterial();
+        material.color.setHex(0xFF0000);
+        this.hpMesh = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
+        this.hpMesh.position = new THREE.Vector3(20, 20, 1);
+    }
+    UI.prototype.draw = function () {
+    };
+
+    UI.prototype.update = function (scene, hp) {
+        this.hp = hp;
+        for (var i = 0; i < this.hp; i++) {
+            scene.add(this.hpMesh);
+        }
+        this.hpMesh.rotation.x += 0.01;
+        this.hpMesh.rotation.y += 0.01;
+    };
+    return UI;
+})();
 var Game = (function () {
     function Game() {
         this.assets = new AssetManager();
@@ -346,6 +373,7 @@ var Game = (function () {
         this.player = this.cf.spawnPlayer(spawnPos);
         this.world = new TestWorld2(THREE.ImageUtils.loadTexture('../assets/test.png'), this.tileSize);
         this.entities = [];
+        this.ui = new UI();
 
         this.renderer.scene.add(this.player.getModel());
 
@@ -371,7 +399,7 @@ var Game = (function () {
     Game.prototype.update = function () {
         var _this = this;
         this.player.update();
-
+        this.ui.update(this.renderer.scene, this.player.getHp());
         this.entities.forEach(function (entity) {
             if (entity.checkCollision(_this.world.getObstacles())) {
                 _this.entities.splice(_this.entities.indexOf(entity), 1);

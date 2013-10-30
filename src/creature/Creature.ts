@@ -3,6 +3,7 @@ class Creature implements Drawable, Updatable {
     public  model:  THREE.Object3D;
     public  pos:    THREE.Vector3;
     public  speed:  number;
+    public  hp:     number;
 
     constructor() {}
 
@@ -32,6 +33,10 @@ class Creature implements Drawable, Updatable {
     public move(obstacles, x: number, y: number):void {
         this.pos.x += x;
         this.pos.y += y;
+    }
+
+    public getHp():number {
+        return this.hp;
     }
 
 }

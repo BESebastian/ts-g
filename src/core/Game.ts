@@ -5,6 +5,7 @@
 ///<reference path='../creature/CreatureFactory.ts' />
 ///<reference path='../entities/Projectile.ts' />
 ///<reference path='TestWorld2.ts' />
+///<reference path='UI.ts' />
 
 class Game {
 
@@ -20,6 +21,7 @@ class Game {
     private width:      number;
     private height:     number;
     private tileSize:   number;
+    private ui:         UI;
 
     constructor() {
         this.assets   = new AssetManager();
@@ -41,6 +43,7 @@ class Game {
         this.player   = this.cf.spawnPlayer(spawnPos);
         this.world    = new TestWorld2(THREE.ImageUtils.loadTexture('../assets/test.png'), this.tileSize);
         this.entities = [];
+        this.ui       = new UI();
 
         this.renderer.scene.add(this.player.getModel());
 
@@ -67,7 +70,7 @@ class Game {
     private update():void {
         var _this = this;
         this.player.update();
-        //this.world.testUpdate();
+        this.ui.update(this.renderer.scene, this.player.getHp());
         this.entities.forEach(function (entity) {
             if (entity.checkCollision(_this.world.getObstacles())) {
                 _this.entities.splice(_this.entities.indexOf(entity), 1);

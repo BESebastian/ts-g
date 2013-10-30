@@ -24,7 +24,7 @@ class Player extends Creature implements Collider {
         this.model.receiveShadow = true;
         this.fired = false;
         this.firingCooldown = 0;
-
+        this.hp = 3;
         this.caster = new THREE.Raycaster();
         this.distance = 2.3;
         this.rays = [
