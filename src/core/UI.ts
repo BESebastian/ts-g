@@ -1,16 +1,20 @@
+///<reference path="../entities/UIHealthItem.ts" />
+
 class UI {
 
-    private hp: number;
-    private hpMesh;
+    private hp:         number;
+    private prevHp:     number;
+    private hpGeometry: THREE.CubeGeometry;
+    private hpMaterial: THREE.MeshPhongMaterial;
+    private defaultPos: THREE.Vector3;
 
     constructor() {
         this.hp = 0;
 
-        var geometry = new THREE.CubeGeometry(2, 2, 2);
-        var material = new THREE.MeshPhongMaterial();
-        material.color.setHex(0xFF0000);
-        this.hpMesh = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
-        this.hpMesh.position = new THREE.Vector3(20, 20, 1);
+        this.hpGeometry = new THREE.CubeGeometry(2, 2, 2);
+        this.hpMaterial = new THREE.MeshPhongMaterial();
+        this.hpMaterial.color.setHex(0xFF0000);
+        this.defaultPos = new THREE.Vector3(20, 20, 1);
     }
 
     public draw():void {
@@ -18,12 +22,16 @@ class UI {
     }
 
     public update(scene: THREE.Scene, hp: number):void {
+        this.prevHp = this.hp;
         this.hp = hp;
-        for (var i = 0; i < this.hp; i++) {
-            scene.add(this.hpMesh);
+        if (this.hp !== this.prevHp) {
+            for (var i = 0; i < this.hp; i++) {
+                var mesh = new UIHealthItem().getModel();
+                mesh.position = this.defaultPos;
+                mesh.position.x += i * 2;
+                scene.add(mesh);
+            }
         }
-        this.hpMesh.rotation.x += 0.01;
-        this.hpMesh.rotation.y += 0.01;
     }
 
 }

@@ -220,8 +220,10 @@ var CreatureFactory = (function () {
     };
     return CreatureFactory;
 })();
-var Projectile = (function () {
+var Projectile = (function (_super) {
+    __extends(Projectile, _super);
     function Projectile(vector, velX, velY, velZ) {
+        _super.call(this);
         this.pos = new THREE.Vector3(vector.x, vector.y, vector.z);
         var geometry = new THREE.SphereGeometry(1, 10, 10);
         var shadeMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
@@ -266,12 +268,8 @@ var Projectile = (function () {
         }
         this.model.position = this.pos;
     };
-
-    Projectile.prototype.getModel = function () {
-        return this.model;
-    };
     return Projectile;
-})();
+})(Entity);
 var TestWorld2 = (function () {
     function TestWorld2(texture, tileSize) {
         this.tileSize = tileSize;
@@ -333,26 +331,41 @@ var TestWorld2 = (function () {
     };
     return TestWorld2;
 })();
+var UIHealthItem = (function (_super) {
+    __extends(UIHealthItem, _super);
+    function UIHealthItem() {
+        _super.call(this);
+        var geometry = new THREE.CubeGeometry(2, 2, 2);
+        var material = new THREE.MeshPhongMaterial();
+        material.color.setHex(0xFF0000);
+        this.pos = new THREE.Vector3(20, 20, 1);
+        this.model = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
+    }
+    return UIHealthItem;
+})(Entity);
 var UI = (function () {
     function UI() {
         this.hp = 0;
 
-        var geometry = new THREE.CubeGeometry(2, 2, 2);
-        var material = new THREE.MeshPhongMaterial();
-        material.color.setHex(0xFF0000);
-        this.hpMesh = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
-        this.hpMesh.position = new THREE.Vector3(20, 20, 1);
+        this.hpGeometry = new THREE.CubeGeometry(2, 2, 2);
+        this.hpMaterial = new THREE.MeshPhongMaterial();
+        this.hpMaterial.color.setHex(0xFF0000);
+        this.defaultPos = new THREE.Vector3(20, 20, 1);
     }
     UI.prototype.draw = function () {
     };
 
     UI.prototype.update = function (scene, hp) {
+        this.prevHp = this.hp;
         this.hp = hp;
-        for (var i = 0; i < this.hp; i++) {
-            scene.add(this.hpMesh);
+        if (this.hp !== this.prevHp) {
+            for (var i = 0; i < this.hp; i++) {
+                var mesh = new UIHealthItem().getModel();
+                mesh.position = this.defaultPos;
+                mesh.position.x += i * 2;
+                scene.add(mesh);
+            }
         }
-        this.hpMesh.rotation.x += 0.01;
-        this.hpMesh.rotation.y += 0.01;
     };
     return UI;
 })();
@@ -455,3 +468,14 @@ var Game = (function () {
     return Game;
 })();
 var g = new Game();
+var Entity = (function () {
+    function Entity() {
+    }
+    Entity.prototype.update = function () {
+    };
+
+    Entity.prototype.getModel = function () {
+        return this.model;
+    };
+    return Entity;
+})();

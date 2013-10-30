@@ -1,13 +1,13 @@
-class Projectile implements Updatable, Collider {
+class Projectile extends Entity {
 
     public  pos:        THREE.Vector3;
-    public  model:      THREE.Object3D;
     public  velocity:   any;
     public  rays;
     public  distance:   number;
     public  caster:     THREE.Raycaster;
 
     constructor(vector, velX: number, velY: number, velZ: number) {
+        super();
         this.pos = new THREE.Vector3(vector.x, vector.y, vector.z);
         var geometry = new THREE.SphereGeometry(1, 10, 10);
         var shadeMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
@@ -53,10 +53,6 @@ class Projectile implements Updatable, Collider {
             this.pos.z += this.velocity.z;
         }
         this.model.position = this.pos;
-    }
-
-    public getModel():THREE.Object3D {
-        return this.model;
     }
 
 }
