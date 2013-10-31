@@ -1,4 +1,6 @@
-class Projectile extends Entity {
+///<reference path="Thing.ts" />
+
+class Projectile extends Thing {
 
     public  pos:        THREE.Vector3;
     public  velocity:   any;

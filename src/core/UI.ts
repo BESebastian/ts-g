@@ -4,17 +4,11 @@ class UI {
 
     private hp:         number;
     private prevHp:     number;
-    private hpGeometry: THREE.CubeGeometry;
-    private hpMaterial: THREE.MeshPhongMaterial;
-    private defaultPos: THREE.Vector3;
+    private objs;
 
     constructor() {
         this.hp = 0;
-
-        this.hpGeometry = new THREE.CubeGeometry(2, 2, 2);
-        this.hpMaterial = new THREE.MeshPhongMaterial();
-        this.hpMaterial.color.setHex(0xFF0000);
-        this.defaultPos = new THREE.Vector3(20, 20, 1);
+        this.objs = [];
     }
 
     public draw():void {
@@ -26,12 +20,18 @@ class UI {
         this.hp = hp;
         if (this.hp !== this.prevHp) {
             for (var i = 0; i < this.hp; i++) {
-                var mesh = new UIHealthItem().getModel();
-                mesh.position = this.defaultPos;
-                mesh.position.x += i * 2;
+                var m = new UIHealthItem();
+                var mesh = m.getModel();
+                mesh.position = new THREE.Vector3(4, 35, 5);
+                mesh.position.x = mesh.position.x + (i * 2);
                 scene.add(mesh);
+                this.objs.push(m);
             }
         }
+    }
+
+    public getItems() {
+        return this.objs;
     }
 
 }

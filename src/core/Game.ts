@@ -45,6 +45,10 @@ class Game {
         this.entities = [];
         this.ui       = new UI();
 
+        this.ui.getItems().forEach(function (item) {
+            this.entities.push(item);
+        });
+
         this.renderer.scene.add(this.player.getModel());
 
         for (var y = 0; y < this.world.map.length; y++) {
