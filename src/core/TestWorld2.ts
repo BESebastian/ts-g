@@ -17,7 +17,7 @@ class TestWorld2 {
 
         this.map = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
             [1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -42,7 +42,7 @@ class TestWorld2 {
         var material = new THREE.MeshPhongMaterial();
         for (var y = 0; y < this.map.length; y++) {
             for (var x = 0; x < this.map[0].length; x++) {
-                if (this.map[y][x] === 0 || this.map[y][x] === 2) {
+                if (this.map[y][x] === 0 || this.map[y][x] === 2 || this.map[y][x] === 3) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, -3);
                     this.meshes[y][x] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
                     this.meshes[y][x].position = pos;
@@ -61,6 +61,12 @@ class TestWorld2 {
                 if (this.map[y][x] === 2) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
                     var item = this.itemFactory.spawnHpUp();
+                    item.setPosition(pos);
+                    this.items.push(item);
+                }
+                if (this.map[y][x] === 3) {
+                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
+                    var item = this.itemFactory.spawnArmour();
                     item.setPosition(pos);
                     this.items.push(item);
                 }

@@ -5,6 +5,7 @@ class Item implements Drawable, Updatable {
     private speed:      number;
     private hp:         number;
     private maxHp:      number;
+    private armour:     number;
     private name:       string;
     private rays;
     private distance:   number;
@@ -14,6 +15,8 @@ class Item implements Drawable, Updatable {
         this.name = name;
         this.speed = 0;
         this.hp = 0;
+        this.maxHp = 0;
+        this.armour = 0;
 
         this.caster = new THREE.Raycaster();
         this.distance = 1.5;
@@ -55,6 +58,11 @@ class Item implements Drawable, Updatable {
         return returnVal;
     }
 
+    public setModel(model: THREE.Object3D):Item {
+        this.model = model;
+        return this;
+    }
+
     public getModel():THREE.Object3D {
         return this.model;
     }
@@ -79,4 +87,8 @@ class Item implements Drawable, Updatable {
         return this;
     }
 
+    public setArmour(amt: number):Item {
+        this.armour = amt;
+        return this;
+    }
 }

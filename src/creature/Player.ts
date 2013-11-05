@@ -99,7 +99,12 @@ class Player extends Creature implements Collider {
 
     public pickupItem(item):void {
         this.speed += item.speed;
-        this.hp += item.hp;
+
+        this.hp = (this.hp + item.hp >= this.maxHp)
+            ? this.hp = this.maxHp
+            : this.hp += item.hp
+
+        this.armour += item.armour;
         this.maxHp += item.maxHp;
         this.addToInventory(item);
     }

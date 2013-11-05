@@ -78,6 +78,8 @@ var Item = (function () {
         this.name = name;
         this.speed = 0;
         this.hp = 0;
+        this.maxHp = 0;
+        this.armour = 0;
 
         this.caster = new THREE.Raycaster();
         this.distance = 1.5;
@@ -119,6 +121,11 @@ var Item = (function () {
         return returnVal;
     };
 
+    Item.prototype.setModel = function (model) {
+        this.model = model;
+        return this;
+    };
+
     Item.prototype.getModel = function () {
         return this.model;
     };
@@ -142,14 +149,34 @@ var Item = (function () {
         this.maxHp = amt;
         return this;
     };
+
+    Item.prototype.setArmour = function (amt) {
+        this.armour = amt;
+        return this;
+    };
     return Item;
 })();
 var ItemFactory = (function () {
     function ItemFactory() {
     }
+    ItemFactory.prototype.spawnHp = function () {
+        var item = new Item('Hp Restore');
+        item.setHp(1);
+        return item;
+    };
+
     ItemFactory.prototype.spawnHpUp = function () {
         var item = new Item('Hp+');
         item.setMaxHp(1);
+        return item;
+    };
+
+    ItemFactory.prototype.spawnArmour = function () {
+        var item = new Item('Armour+');
+        item.setArmour(1);
+        var geometry = new THREE.CubeGeometry(1, 1, 1);
+        var material = new THREE.MeshPhongMaterial({ color: 0x0000FF });
+        item.setModel(THREE.SceneUtils.createMultiMaterialObject(geometry, [material]));
         return item;
     };
     return ItemFactory;
@@ -296,7 +323,10 @@ var Player = (function (_super) {
 
     Player.prototype.pickupItem = function (item) {
         this.speed += item.speed;
-        this.hp += item.hp;
+
+        this.hp = (this.hp + item.hp >= this.maxHp) ? this.hp = this.maxHp : this.hp += item.hp;
+
+        this.armour += item.armour;
         this.maxHp += item.maxHp;
         this.addToInventory(item);
     };
@@ -389,7 +419,7 @@ var TestWorld2 = (function () {
 
         this.map = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
             [1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -413,7 +443,7 @@ var TestWorld2 = (function () {
         var material = new THREE.MeshPhongMaterial();
         for (var y = 0; y < this.map.length; y++) {
             for (var x = 0; x < this.map[0].length; x++) {
-                if (this.map[y][x] === 0 || this.map[y][x] === 2) {
+                if (this.map[y][x] === 0 || this.map[y][x] === 2 || this.map[y][x] === 3) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, -3);
                     this.meshes[y][x] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
                     this.meshes[y][x].position = pos;
@@ -431,6 +461,12 @@ var TestWorld2 = (function () {
                 if (this.map[y][x] === 2) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
                     var item = this.itemFactory.spawnHpUp();
+                    item.setPosition(pos);
+                    this.items.push(item);
+                }
+                if (this.map[y][x] === 3) {
+                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
+                    var item = this.itemFactory.spawnArmour();
                     item.setPosition(pos);
                     this.items.push(item);
                 }
