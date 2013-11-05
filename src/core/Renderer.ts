@@ -32,6 +32,8 @@ class Renderer {
         this.renderer.shadowMapEnabled = true;
         this.renderer.shadowMapSoft = true;
 
+        this.renderer.domElement.id = 'viewport';
+
         var light = new THREE.SpotLight(0xffffff, 0.8);
         light.angle = Math.PI/2;
         light.castShadow = true;
