@@ -13,6 +13,7 @@ class Renderer {
     private NEAR:       number;
     private FAR:        number;
     private renderer:   THREE.WebGLRenderer;
+    private light:      THREE.SpotLight;
 
     constructor(width, height, tileSize) {
         this.container  = document.getElementById('container');
@@ -33,14 +34,16 @@ class Renderer {
         this.renderer.shadowMapSoft = true;
 
         this.renderer.domElement.id = 'viewport';
-
-        var light = new THREE.SpotLight(0xffffff, 0.8);
-        light.angle = Math.PI/2;
-        light.castShadow = true;
-        light.position.set(width * tileSize, height * tileSize, 100);
-        this.scene.add(light);
-
         this.camera.position.set(0, 0, 50);
+
+        this.light = new THREE.SpotLight(0xffffff, 0.8);
+        this.light.castShadow = true;
+        this.light.position.set(35, 20, 50);
+        this.light.shadowDarkness = 1;
+        this.light.target.position.x = 35;
+        this.light.target.position.y = 20;
+        this.scene.add(this.light);
+
     }
 
     public draw():void {

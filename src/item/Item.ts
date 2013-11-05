@@ -6,6 +6,8 @@ class Item implements Drawable, Updatable {
     private hp:         number;
     private maxHp:      number;
     private armour:     number;
+    private shotSpeed:  number;
+    private shotDelay:  number;
     private name:       string;
     private rays;
     private distance:   number;
@@ -17,6 +19,8 @@ class Item implements Drawable, Updatable {
         this.hp = 0;
         this.maxHp = 0;
         this.armour = 0;
+        this.shotSpeed = 0;
+        this.shotDelay = 0;
 
         this.caster = new THREE.Raycaster();
         this.distance = 1.5;
@@ -29,7 +33,9 @@ class Item implements Drawable, Updatable {
 
         var geometry = new THREE.CubeGeometry(1, 1, 1);
         var material = new THREE.MeshPhongMaterial({ color: 0xFF0000 });
-        this.model = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
+        this.model = new THREE.Mesh(geometry, material);
+        this.model.castShadow = true;
+        this.model.receiveShadow = true;
     }
 
     public draw():void {}
@@ -91,4 +97,15 @@ class Item implements Drawable, Updatable {
         this.armour = amt;
         return this;
     }
+
+    public setShotSpeed(amt: number):Item {
+        this.shotSpeed = amt;
+        return this;
+    }
+
+    public setShotDelay(amt: number):Item {
+        this.shotDelay = amt;
+        return this;
+    }
+
 }

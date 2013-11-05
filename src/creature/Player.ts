@@ -5,6 +5,7 @@ class Player extends Creature implements Collider {
     private fired:          boolean;
     private firingCooldown: number;
     private shotSpeed:      number;
+    private shotDelay:      number;
     private inventory;
     public  rays;
     public  distance:       number;
@@ -14,9 +15,8 @@ class Player extends Creature implements Collider {
         super();
         var size = 4;
         var geometry = new THREE.CubeGeometry(size, size, size);
-        var shadeMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
-        var edgeMat = new THREE.MeshBasicMaterial({ color: 0x00FF00, wireframe: true, transparent: true, wireframeLinewidth: 3 });
-        this.model = THREE.SceneUtils.createMultiMaterialObject(geometry, [shadeMat, edgeMat]);
+        var material = new THREE.MeshPhongMaterial({ color: 0x00FF00 });
+        this.model = new THREE.Mesh(geometry, material);
         this.pos = new THREE.Vector3(12.5, 12.5, 2);
         this.speed = 0.3;
         this.shotSpeed = 0.7;
@@ -26,6 +26,7 @@ class Player extends Creature implements Collider {
         this.fired = false;
         this.firingCooldown = 0;
         this.maxHp = 5;
+        this.shotDelay = 1;
         this.hp = this.maxHp;
         this.armour = 0;
         this.inventory = [];
@@ -45,7 +46,7 @@ class Player extends Creature implements Collider {
 
     public update():void {
         if (this.firingCooldown > 0) {
-            this.firingCooldown -= 1;
+            this.firingCooldown -= 0.02;
         } else {
             this.fired = false;
         }
@@ -85,12 +86,16 @@ class Player extends Creature implements Collider {
     }
 
     public firing():void {
-        this.firingCooldown = 50;
+        this.firingCooldown = this.shotDelay;
         this.fired = true;
     }
 
     public getShotSpeed():number {
         return this.shotSpeed;
+    }
+
+    public getShotDelay():number {
+        return this.shotDelay;
     }
 
     public addToInventory(item: Item):void {
@@ -99,13 +104,15 @@ class Player extends Creature implements Collider {
 
     public pickupItem(item):void {
         this.speed += item.speed;
+        this.shotSpeed += item.shotSpeed;
+        this.maxHp += item.maxHp;
+        this.shotDelay += item.shotDelay;
 
         this.hp = (this.hp + item.hp >= this.maxHp)
             ? this.hp = this.maxHp
             : this.hp += item.hp
 
         this.armour += item.armour;
-        this.maxHp += item.maxHp;
         this.addToInventory(item);
     }
 

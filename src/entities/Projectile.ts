@@ -12,9 +12,8 @@ class Projectile extends Thing {
         super();
         this.pos = new THREE.Vector3(vector.x, vector.y, vector.z);
         var geometry = new THREE.SphereGeometry(1, 10, 10);
-        var shadeMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
-        var edgeMat = new THREE.MeshBasicMaterial({ color: 0xFF0000, wireframe: true, transparent: true, wireframeLinewidth: 3 });
-        this.model = THREE.SceneUtils.createMultiMaterialObject(geometry, [shadeMat, edgeMat]);
+        var material = new THREE.MeshPhongMaterial({ color: 0xFF0000 });
+        this.model = new THREE.Mesh(geometry, material);
 
         this.model.position = this.pos;
         this.model.castShadow = true;
@@ -56,5 +55,4 @@ class Projectile extends Thing {
         }
         this.model.position = this.pos;
     }
-
 }

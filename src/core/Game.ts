@@ -55,9 +55,7 @@ class Game {
         }
 
         this.roomItems = this.world.getRoomItems();
-
         var _this = this;
-
         this.roomItems.forEach(function (item) {
             _this.renderer.scene.add(item.getModel());
         });

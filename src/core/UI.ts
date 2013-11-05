@@ -32,6 +32,7 @@ class UI {
         debugBuilder.addLine('hp: ' + player.getHp() + '/' + player.getMaxHp());
         debugBuilder.addLine('armour: ' + player.getArmour());
         debugBuilder.addLine('speed: ' + player.getSpeed());
+        debugBuilder.addLine('shotDelay: ' + player.getShotDelay());
         debugBuilder.addLine('shotSpeed: ' + player.getShotSpeed());
         debugBuilder.addLine('hasFired: ' + player.hasFired());
         debugBuilder.render(this.context);
