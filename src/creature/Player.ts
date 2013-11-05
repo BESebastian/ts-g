@@ -5,6 +5,7 @@ class Player extends Creature implements Collider {
     private fired:          boolean;
     private firingCooldown: number;
     private shotSpeed:      number;
+    private inventory;
     public  rays;
     public  distance:       number;
     public  caster:         THREE.Raycaster;
@@ -24,8 +25,10 @@ class Player extends Creature implements Collider {
         this.model.receiveShadow = true;
         this.fired = false;
         this.firingCooldown = 0;
-        this.hp = 5;
+        this.maxHp = 5;
+        this.hp = this.maxHp;
         this.armour = 0;
+        this.inventory = [];
         this.caster = new THREE.Raycaster();
         this.distance = 2.3;
         this.rays = [
@@ -88,6 +91,21 @@ class Player extends Creature implements Collider {
 
     public getShotSpeed():number {
         return this.shotSpeed;
+    }
+
+    public addToInventory(item: Item):void {
+        this.inventory.push(item);
+    }
+
+    public pickupItem(item):void {
+        this.speed += item.speed;
+        this.hp += item.hp;
+        this.maxHp += item.maxHp;
+        this.addToInventory(item);
+    }
+
+    public getInventory() {
+        return this.inventory;
     }
 
 }

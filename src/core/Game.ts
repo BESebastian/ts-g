@@ -22,6 +22,7 @@ class Game {
     private height:     number;
     private tileSize:   number;
     private ui:         UI;
+    private roomItems:  Item[];
 
     constructor() {
         this.assets   = new AssetManager();
@@ -45,10 +46,6 @@ class Game {
         this.entities = [];
         this.ui       = new UI();
 
-        this.ui.getItems().forEach(function (item) {
-            this.entities.push(item);
-        });
-
         this.renderer.scene.add(this.player.getModel());
 
         for (var y = 0; y < this.world.map.length; y++) {
@@ -56,6 +53,14 @@ class Game {
                 this.renderer.scene.add(this.world.getModel(x, y));
             }
         }
+
+        this.roomItems = this.world.getRoomItems();
+
+        var _this = this;
+
+        this.roomItems.forEach(function (item) {
+            _this.renderer.scene.add(item.getModel());
+        });
 
         this.renderer.moveCamera(this.player.getPosition());
         this.loop();
@@ -74,7 +79,7 @@ class Game {
     private update():void {
         var _this = this;
         this.player.update();
-        this.ui.update(this.renderer.scene, this.player.getHp());
+        this.ui.update();
         this.ui.debug(this.player);
         this.entities.forEach(function (entity) {
             if (entity.checkCollision(_this.world.getObstacles())) {
@@ -82,6 +87,13 @@ class Game {
                 _this.renderer.scene.remove(entity.getModel());
             }
             entity.update();
+        });
+        this.roomItems.forEach(function (item) {
+            if (item.checkCollision(_this.player)) {
+                _this.roomItems.splice(_this.roomItems.indexOf(item), 1);
+                _this.renderer.scene.remove(item.getModel());
+            }
+            item.update();
         });
         this.handleKeys();
         this.renderer.update();

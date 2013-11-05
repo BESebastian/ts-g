@@ -1,14 +1,9 @@
 class UI {
 
-    private hp:         number;
-    private prevHp:     number;
-    private objs;
     private canvas:     HTMLCanvasElement;
     private context;
 
     constructor() {
-        this.hp = 0;
-        this.objs = [];
         this.canvas = document.createElement('canvas');
         var view = document.getElementById('viewport').getBoundingClientRect();
         this.canvas.id = 'ui-layer';
@@ -21,14 +16,9 @@ class UI {
         this.context = this.canvas.getContext('2d');
     }
 
-    public draw():void {
+    public draw():void {}
 
-    }
-
-    public update(scene: THREE.Scene, hp: number):void {
-        this.prevHp = this.hp;
-        this.hp = hp;
-    }
+    public update():void {}
 
     private clear():void {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -37,18 +27,38 @@ class UI {
 
     public debug(player: Player):void {
         this.clear();
-        this.context.font = "12pt monospace";
-        this.context.fillStyle = "white";
-        this.context.fillText('x: ' + player.getPosition().x + ' y: ' + player.getPosition().y, 20, 30);
-        this.context.fillText('hp: ' + player.getHp(), 20, 40);
-        this.context.fillText('armour: ' + player.getArmour(), 20, 50);
-        this.context.fillText('speed: ' + player.getSpeed(), 20, 60);
-        this.context.fillText('shotSpeed: ' + player.getShotSpeed(), 20, 70);
-        this.context.fillText('hasFired: ' + player.hasFired(), 20, 80);
+        var debugBuilder = new DebugBuilder();
+        debugBuilder.addLine('x: ' + player.getPosition().x + ' y: ' + player.getPosition().y);
+        debugBuilder.addLine('hp: ' + player.getHp() + '/' + player.getMaxHp());
+        debugBuilder.addLine('armour: ' + player.getArmour());
+        debugBuilder.addLine('speed: ' + player.getSpeed());
+        debugBuilder.addLine('shotSpeed: ' + player.getShotSpeed());
+        debugBuilder.addLine('hasFired: ' + player.hasFired());
+        debugBuilder.render(this.context);
     }
 
-    public getItems() {
-        return this.objs;
+}
+
+class DebugBuilder {
+
+    private startPoint: number
+    private strings;
+
+    constructor() {
+        this.strings = [];
     }
 
+    public addLine(str: String):void {
+        this.strings.push(str);
+    }
+
+    public render(context):void {
+        var startY = 30;
+        context.font = '12pt monospace';
+        context.fillStyle = 'white';
+        for (var i = 0; i < this.strings.length; i++) {
+            context.fillText(this.strings[i], 20, startY);
+            startY += 14;
+        }
+    }
 }

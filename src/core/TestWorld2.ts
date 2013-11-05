@@ -1,23 +1,28 @@
 class TestWorld2 {
 
-    public  tileSize:   number;
-    public  meshes:     THREE.Object3D[][];
+    public  tileSize:       number;
+    public  meshes:         THREE.Object3D[][];
     public  map;
-    private texture:    THREE.Texture;
+    private texture:        THREE.Texture;
     private obstacles;
+    private items;
+    private itemFactory:    ItemFactory;
 
     constructor(texture, tileSize) {
         this.tileSize = tileSize;
         this.texture = texture;
 
+        this.itemFactory = new ItemFactory();
+        this.items = [];
+
         this.map = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
+            [1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         ];
@@ -37,15 +42,27 @@ class TestWorld2 {
         var material = new THREE.MeshPhongMaterial();
         for (var y = 0; y < this.map.length; y++) {
             for (var x = 0; x < this.map[0].length; x++) {
-                var pos = (this.map[y][x] === 1)
-                    ? new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1)
-                    : new THREE.Vector3(x * this.tileSize, y * this.tileSize, -3);
-                this.meshes[y][x] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
-                this.meshes[y][x].position = pos;
-                this.meshes[y][x].receiveShadow = true;
-                this.meshes[y][x].castShadow = true;
-                if (this.map[y][x] === 1) {
+                if (this.map[y][x] === 0 || this.map[y][x] === 2) {
+                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, -3);
+                    this.meshes[y][x] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
+                    this.meshes[y][x].position = pos;
+                    this.meshes[y][x].receiveShadow = true;
+                    this.meshes[y][x].castShadow = true;
+                } else if (this.map[y][x] === 1) {
+                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1)
+                    this.meshes[y][x] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
+                    this.meshes[y][x].position = pos;
+                    this.meshes[y][x].receiveShadow = true;
+                    this.meshes[y][x].castShadow = true;
                     this.obstacles.push(this.meshes[y][x]);
+                }
+
+                // Item guff
+                if (this.map[y][x] === 2) {
+                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
+                    var item = this.itemFactory.spawnHpUp();
+                    item.setPosition(pos);
+                    this.items.push(item);
                 }
             }
         }
@@ -55,16 +72,11 @@ class TestWorld2 {
         return this.obstacles;
     }
 
-    public testUpdate() {
-        this.meshes.forEach(function (mesh) {
-            mesh.forEach(function (m) {
-                m.rotation.x -= 0.01;
-                m.rotation.y -= 0.01;
-            })
-        });
-    }
-
     public getModel(x: number, y: number):THREE.Object3D {
         return this.meshes[y][x];
+    }
+
+    public getRoomItems():Item[] {
+        return this.items;
     }
 }

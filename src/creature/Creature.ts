@@ -4,6 +4,7 @@ class Creature implements Drawable, Updatable {
     public  pos:    THREE.Vector3;
     public  speed:  number;
     public  hp:     number;
+    public  maxHp:  number;
     public  armour: number;
 
     constructor() {}
@@ -38,6 +39,10 @@ class Creature implements Drawable, Updatable {
 
     public getHp():number {
         return this.hp;
+    }
+
+    public getMaxHp():number {
+        return this.maxHp;
     }
 
     public getArmour():number {
