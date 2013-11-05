@@ -74,15 +74,61 @@ var AssetManager = (function () {
     return AssetManager;
 })();
 var Item = (function () {
-    function Item() {
+    function Item(name) {
+        this.name = name;
+        this.speed = 0;
+        this.hp = 0;
+
+        var geometry = new THREE.CubeGeometry(1, 1, 1);
+        var material = new THREE.MeshPhongMaterial({ color: 0xFF0000 });
+        this.model = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
     }
     Item.prototype.draw = function () {
+    };
+
+    Item.prototype.update = function () {
+        this.model.position = this.pos;
+        this.model.rotation.x += 0.01;
+        this.model.rotation.y += 0.01;
+    };
+
+    Item.prototype.checkCollision = function (player) {
+        return false;
+    };
+
+    Item.prototype.getModel = function () {
+        return this.model;
+    };
+
+    Item.prototype.setPosition = function (vector) {
+        this.pos = vector;
+        return this;
+    };
+
+    Item.prototype.setSpeed = function (amt) {
+        this.speed = amt;
+        return this;
+    };
+
+    Item.prototype.setHp = function (amt) {
+        this.hp = amt;
+        return this;
+    };
+
+    Item.prototype.setMaxHp = function (amt) {
+        this.maxHp = amt;
+        return this;
     };
     return Item;
 })();
 var ItemFactory = (function () {
     function ItemFactory() {
     }
+    ItemFactory.prototype.spawnHpUp = function () {
+        var item = new Item('Hp+');
+        item.setMaxHp(1);
+        return item;
+    };
     return ItemFactory;
 })();
 var Creature = (function () {
@@ -122,6 +168,10 @@ var Creature = (function () {
         return this.hp;
     };
 
+    Creature.prototype.getMaxHp = function () {
+        return this.maxHp;
+    };
+
     Creature.prototype.getArmour = function () {
         return this.armour;
     };
@@ -150,8 +200,10 @@ var Player = (function (_super) {
         this.model.receiveShadow = true;
         this.fired = false;
         this.firingCooldown = 0;
-        this.hp = 5;
+        this.maxHp = 5;
+        this.hp = this.maxHp;
         this.armour = 0;
+        this.inventory = [];
         this.caster = new THREE.Raycaster();
         this.distance = 2.3;
         this.rays = [
@@ -213,6 +265,21 @@ var Player = (function (_super) {
 
     Player.prototype.getShotSpeed = function () {
         return this.shotSpeed;
+    };
+
+    Player.prototype.addToInventory = function (item) {
+        this.inventory.push(item);
+    };
+
+    Player.prototype.pickupItem = function (item) {
+        this.speed += item.speed;
+        this.hp += item.hp;
+        this.maxHp += item.maxHp;
+        this.addToInventory(item);
+    };
+
+    Player.prototype.getInventory = function () {
+        return this.inventory;
     };
     return Player;
 })(Creature);
@@ -294,14 +361,17 @@ var TestWorld2 = (function () {
         this.tileSize = tileSize;
         this.texture = texture;
 
+        this.itemFactory = new ItemFactory();
+        this.items = [];
+
         this.map = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
+            [1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         ];
@@ -320,13 +390,26 @@ var TestWorld2 = (function () {
         var material = new THREE.MeshPhongMaterial();
         for (var y = 0; y < this.map.length; y++) {
             for (var x = 0; x < this.map[0].length; x++) {
-                var pos = (this.map[y][x] === 1) ? new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1) : new THREE.Vector3(x * this.tileSize, y * this.tileSize, -3);
-                this.meshes[y][x] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
-                this.meshes[y][x].position = pos;
-                this.meshes[y][x].receiveShadow = true;
-                this.meshes[y][x].castShadow = true;
-                if (this.map[y][x] === 1) {
+                if (this.map[y][x] === 0 || this.map[y][x] === 2) {
+                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, -3);
+                    this.meshes[y][x] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
+                    this.meshes[y][x].position = pos;
+                    this.meshes[y][x].receiveShadow = true;
+                    this.meshes[y][x].castShadow = true;
+                } else if (this.map[y][x] === 1) {
+                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
+                    this.meshes[y][x] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
+                    this.meshes[y][x].position = pos;
+                    this.meshes[y][x].receiveShadow = true;
+                    this.meshes[y][x].castShadow = true;
                     this.obstacles.push(this.meshes[y][x]);
+                }
+
+                if (this.map[y][x] === 2) {
+                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
+                    var item = this.itemFactory.spawnHpUp();
+                    item.setPosition(pos);
+                    this.items.push(item);
                 }
             }
         }
@@ -336,24 +419,17 @@ var TestWorld2 = (function () {
         return this.obstacles;
     };
 
-    TestWorld2.prototype.testUpdate = function () {
-        this.meshes.forEach(function (mesh) {
-            mesh.forEach(function (m) {
-                m.rotation.x -= 0.01;
-                m.rotation.y -= 0.01;
-            });
-        });
-    };
-
     TestWorld2.prototype.getModel = function (x, y) {
         return this.meshes[y][x];
+    };
+
+    TestWorld2.prototype.getRoomItems = function () {
+        return this.items;
     };
     return TestWorld2;
 })();
 var UI = (function () {
     function UI() {
-        this.hp = 0;
-        this.objs = [];
         this.canvas = document.createElement('canvas');
         var view = document.getElementById('viewport').getBoundingClientRect();
         this.canvas.id = 'ui-layer';
@@ -368,9 +444,7 @@ var UI = (function () {
     UI.prototype.draw = function () {
     };
 
-    UI.prototype.update = function (scene, hp) {
-        this.prevHp = this.hp;
-        this.hp = hp;
+    UI.prototype.update = function () {
     };
 
     UI.prototype.clear = function () {
@@ -380,20 +454,36 @@ var UI = (function () {
 
     UI.prototype.debug = function (player) {
         this.clear();
-        this.context.font = "12pt monospace";
-        this.context.fillStyle = "white";
-        this.context.fillText('x: ' + player.getPosition().x + ' y: ' + player.getPosition().y, 20, 30);
-        this.context.fillText('hp: ' + player.getHp(), 20, 40);
-        this.context.fillText('armour: ' + player.getArmour(), 20, 50);
-        this.context.fillText('speed: ' + player.getSpeed(), 20, 60);
-        this.context.fillText('shotSpeed: ' + player.getShotSpeed(), 20, 70);
-        this.context.fillText('hasFired: ' + player.hasFired(), 20, 80);
-    };
-
-    UI.prototype.getItems = function () {
-        return this.objs;
+        var debugBuilder = new DebugBuilder();
+        debugBuilder.addLine('x: ' + player.getPosition().x + ' y: ' + player.getPosition().y);
+        debugBuilder.addLine('hp: ' + player.getHp() + '/' + player.getMaxHp());
+        debugBuilder.addLine('armour: ' + player.getArmour());
+        debugBuilder.addLine('speed: ' + player.getSpeed());
+        debugBuilder.addLine('shotSpeed: ' + player.getShotSpeed());
+        debugBuilder.addLine('hasFired: ' + player.hasFired());
+        debugBuilder.render(this.context);
     };
     return UI;
+})();
+
+var DebugBuilder = (function () {
+    function DebugBuilder() {
+        this.strings = [];
+    }
+    DebugBuilder.prototype.addLine = function (str) {
+        this.strings.push(str);
+    };
+
+    DebugBuilder.prototype.render = function (context) {
+        var startY = 30;
+        context.font = '12pt monospace';
+        context.fillStyle = 'white';
+        for (var i = 0; i < this.strings.length; i++) {
+            context.fillText(this.strings[i], 20, startY);
+            startY += 14;
+        }
+    };
+    return DebugBuilder;
 })();
 var Game = (function () {
     function Game() {
@@ -414,10 +504,6 @@ var Game = (function () {
         this.entities = [];
         this.ui = new UI();
 
-        this.ui.getItems().forEach(function (item) {
-            this.entities.push(item);
-        });
-
         this.renderer.scene.add(this.player.getModel());
 
         for (var y = 0; y < this.world.map.length; y++) {
@@ -425,6 +511,14 @@ var Game = (function () {
                 this.renderer.scene.add(this.world.getModel(x, y));
             }
         }
+
+        this.roomItems = this.world.getRoomItems();
+
+        var _this = this;
+
+        this.roomItems.forEach(function (item) {
+            _this.renderer.scene.add(item.getModel());
+        });
 
         this.renderer.moveCamera(this.player.getPosition());
         this.loop();
@@ -442,7 +536,7 @@ var Game = (function () {
     Game.prototype.update = function () {
         var _this = this;
         this.player.update();
-        this.ui.update(this.renderer.scene, this.player.getHp());
+        this.ui.update();
         this.ui.debug(this.player);
         this.entities.forEach(function (entity) {
             if (entity.checkCollision(_this.world.getObstacles())) {
@@ -450,6 +544,13 @@ var Game = (function () {
                 _this.renderer.scene.remove(entity.getModel());
             }
             entity.update();
+        });
+        this.roomItems.forEach(function (item) {
+            if (item.checkCollision(_this.player)) {
+                _this.roomItems.splice(_this.roomItems.indexOf(item), 1);
+                _this.renderer.scene.remove(item.getModel());
+            }
+            item.update();
         });
         this.handleKeys();
         this.renderer.update();
