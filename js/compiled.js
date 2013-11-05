@@ -18,14 +18,15 @@ var Renderer = (function () {
         this.renderer.shadowMapSoft = true;
 
         this.renderer.domElement.id = 'viewport';
-
-        var light = new THREE.SpotLight(0xffffff, 0.8);
-        light.angle = Math.PI / 2;
-        light.castShadow = true;
-        light.position.set(width * tileSize, height * tileSize, 100);
-        this.scene.add(light);
-
         this.camera.position.set(0, 0, 50);
+
+        this.light = new THREE.SpotLight(0xffffff, 0.8);
+        this.light.castShadow = true;
+        this.light.position.set(35, 20, 50);
+        this.light.shadowDarkness = 1;
+        this.light.target.position.x = 35;
+        this.light.target.position.y = 20;
+        this.scene.add(this.light);
     }
     Renderer.prototype.draw = function () {
         this.renderer.render(this.scene, this.camera);
@@ -80,6 +81,8 @@ var Item = (function () {
         this.hp = 0;
         this.maxHp = 0;
         this.armour = 0;
+        this.shotSpeed = 0;
+        this.shotDelay = 0;
 
         this.caster = new THREE.Raycaster();
         this.distance = 1.5;
@@ -92,7 +95,9 @@ var Item = (function () {
 
         var geometry = new THREE.CubeGeometry(1, 1, 1);
         var material = new THREE.MeshPhongMaterial({ color: 0xFF0000 });
-        this.model = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
+        this.model = new THREE.Mesh(geometry, material);
+        this.model.castShadow = true;
+        this.model.receiveShadow = true;
     }
     Item.prototype.draw = function () {
     };
@@ -154,6 +159,16 @@ var Item = (function () {
         this.armour = amt;
         return this;
     };
+
+    Item.prototype.setShotSpeed = function (amt) {
+        this.shotSpeed = amt;
+        return this;
+    };
+
+    Item.prototype.setShotDelay = function (amt) {
+        this.shotDelay = amt;
+        return this;
+    };
     return Item;
 })();
 var ItemFactory = (function () {
@@ -168,6 +183,7 @@ var ItemFactory = (function () {
     ItemFactory.prototype.spawnHpUp = function () {
         var item = new Item('Hp+');
         item.setMaxHp(1);
+        item.setHp(1);
         return item;
     };
 
@@ -176,7 +192,23 @@ var ItemFactory = (function () {
         item.setArmour(1);
         var geometry = new THREE.CubeGeometry(1, 1, 1);
         var material = new THREE.MeshPhongMaterial({ color: 0x0000FF });
-        item.setModel(THREE.SceneUtils.createMultiMaterialObject(geometry, [material]));
+        var model = new THREE.Mesh(geometry, material);
+        model.castShadow = true;
+        model.receiveShadow = true;
+        item.setModel(model);
+
+        return item;
+    };
+
+    ItemFactory.prototype.spawnShotSpeed = function () {
+        var item = new Item('Shot Speed Shit');
+        item.setShotSpeed(1);
+        return item;
+    };
+
+    ItemFactory.prototype.spawnShotDelay = function () {
+        var item = new Item('Reduce Shot Delay');
+        item.setShotDelay(-0.2);
         return item;
     };
     return ItemFactory;
@@ -239,9 +271,8 @@ var Player = (function (_super) {
         _super.call(this);
         var size = 4;
         var geometry = new THREE.CubeGeometry(size, size, size);
-        var shadeMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
-        var edgeMat = new THREE.MeshBasicMaterial({ color: 0x00FF00, wireframe: true, transparent: true, wireframeLinewidth: 3 });
-        this.model = THREE.SceneUtils.createMultiMaterialObject(geometry, [shadeMat, edgeMat]);
+        var material = new THREE.MeshPhongMaterial({ color: 0x00FF00 });
+        this.model = new THREE.Mesh(geometry, material);
         this.pos = new THREE.Vector3(12.5, 12.5, 2);
         this.speed = 0.3;
         this.shotSpeed = 0.7;
@@ -251,6 +282,7 @@ var Player = (function (_super) {
         this.fired = false;
         this.firingCooldown = 0;
         this.maxHp = 5;
+        this.shotDelay = 1;
         this.hp = this.maxHp;
         this.armour = 0;
         this.inventory = [];
@@ -269,7 +301,7 @@ var Player = (function (_super) {
 
     Player.prototype.update = function () {
         if (this.firingCooldown > 0) {
-            this.firingCooldown -= 1;
+            this.firingCooldown -= 0.02;
         } else {
             this.fired = false;
         }
@@ -309,12 +341,16 @@ var Player = (function (_super) {
     };
 
     Player.prototype.firing = function () {
-        this.firingCooldown = 50;
+        this.firingCooldown = this.shotDelay;
         this.fired = true;
     };
 
     Player.prototype.getShotSpeed = function () {
         return this.shotSpeed;
+    };
+
+    Player.prototype.getShotDelay = function () {
+        return this.shotDelay;
     };
 
     Player.prototype.addToInventory = function (item) {
@@ -323,11 +359,13 @@ var Player = (function (_super) {
 
     Player.prototype.pickupItem = function (item) {
         this.speed += item.speed;
+        this.shotSpeed += item.shotSpeed;
+        this.maxHp += item.maxHp;
+        this.shotDelay += item.shotDelay;
 
         this.hp = (this.hp + item.hp >= this.maxHp) ? this.hp = this.maxHp : this.hp += item.hp;
 
         this.armour += item.armour;
-        this.maxHp += item.maxHp;
         this.addToInventory(item);
     };
 
@@ -365,9 +403,8 @@ var Projectile = (function (_super) {
         _super.call(this);
         this.pos = new THREE.Vector3(vector.x, vector.y, vector.z);
         var geometry = new THREE.SphereGeometry(1, 10, 10);
-        var shadeMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
-        var edgeMat = new THREE.MeshBasicMaterial({ color: 0xFF0000, wireframe: true, transparent: true, wireframeLinewidth: 3 });
-        this.model = THREE.SceneUtils.createMultiMaterialObject(geometry, [shadeMat, edgeMat]);
+        var material = new THREE.MeshPhongMaterial({ color: 0xFF0000 });
+        this.model = new THREE.Mesh(geometry, material);
 
         this.model.position = this.pos;
         this.model.castShadow = true;
@@ -445,22 +482,22 @@ var TestWorld2 = (function () {
             for (var x = 0; x < this.map[0].length; x++) {
                 if (this.map[y][x] === 0 || this.map[y][x] === 2 || this.map[y][x] === 3) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, -3);
-                    this.meshes[y][x] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
+                    this.meshes[y][x] = new THREE.Mesh(geometry, material);
                     this.meshes[y][x].position = pos;
-                    this.meshes[y][x].receiveShadow = true;
                     this.meshes[y][x].castShadow = true;
+                    this.meshes[y][x].receiveShadow = true;
                 } else if (this.map[y][x] === 1) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
-                    this.meshes[y][x] = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
+                    this.meshes[y][x] = new THREE.Mesh(geometry, material);
                     this.meshes[y][x].position = pos;
-                    this.meshes[y][x].receiveShadow = true;
                     this.meshes[y][x].castShadow = true;
+                    this.meshes[y][x].receiveShadow = true;
                     this.obstacles.push(this.meshes[y][x]);
                 }
 
                 if (this.map[y][x] === 2) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
-                    var item = this.itemFactory.spawnHpUp();
+                    var item = this.itemFactory.spawnShotDelay();
                     item.setPosition(pos);
                     this.items.push(item);
                 }
@@ -518,6 +555,7 @@ var UI = (function () {
         debugBuilder.addLine('hp: ' + player.getHp() + '/' + player.getMaxHp());
         debugBuilder.addLine('armour: ' + player.getArmour());
         debugBuilder.addLine('speed: ' + player.getSpeed());
+        debugBuilder.addLine('shotDelay: ' + player.getShotDelay());
         debugBuilder.addLine('shotSpeed: ' + player.getShotSpeed());
         debugBuilder.addLine('hasFired: ' + player.hasFired());
         debugBuilder.render(this.context);
@@ -572,9 +610,7 @@ var Game = (function () {
         }
 
         this.roomItems = this.world.getRoomItems();
-
         var _this = this;
-
         this.roomItems.forEach(function (item) {
             _this.renderer.scene.add(item.getModel());
         });
