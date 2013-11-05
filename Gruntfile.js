@@ -17,7 +17,9 @@ module.exports = function (grunt) {
                 files: ['src/**/*.ts'],
                 tasks: ['typescript'],
                 options: {
-                    livereload: true
+                    livereload: {
+                        port: 3001
+                    }
                 }
             }
         }
