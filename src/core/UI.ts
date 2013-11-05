@@ -22,7 +22,7 @@ class UI {
     }
 
     public draw():void {
-        //this.drawHp();
+
     }
 
     public update(scene: THREE.Scene, hp: number):void {
@@ -30,20 +30,21 @@ class UI {
         this.hp = hp;
     }
 
-    private clearCanvas():void {
+    private clear():void {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.canvas.width = this.canvas.width;
     }
 
     public debug(player: Player):void {
-        this.clearCanvas();
-        this.context.font = "15pt monospace";
+        this.clear();
+        this.context.font = "12pt monospace";
         this.context.fillStyle = "white";
-        this.context.fillText('hp: ' + player.getHp(), 20, 30);
+        this.context.fillText('x: ' + player.getPosition().x + ' y: ' + player.getPosition().y, 20, 30);
+        this.context.fillText('hp: ' + player.getHp(), 20, 40);
         this.context.fillText('armour: ' + player.getArmour(), 20, 50);
-        this.context.fillText('speed: ' + player.getSpeed(), 20, 70);
-        this.context.fillText('shotSpeed: ' + player.getShotSpeed(), 20, 90);
-        this.context.fillText('hasFired: ' + player.hasFired(), 20, 110);
+        this.context.fillText('speed: ' + player.getSpeed(), 20, 60);
+        this.context.fillText('shotSpeed: ' + player.getShotSpeed(), 20, 70);
+        this.context.fillText('hasFired: ' + player.hasFired(), 20, 80);
     }
 
     public getItems() {
