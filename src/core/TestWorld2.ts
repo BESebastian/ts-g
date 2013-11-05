@@ -43,13 +43,13 @@ class TestWorld2 {
         var darkMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
         for (var y = 0; y < this.map.length; y++) {
             for (var x = 0; x < this.map[0].length; x++) {
-                if (this.map[y][x] === 0 || this.map[y][x] === 2 || this.map[y][x] === 3) {
+                if (this.map[y][x] !== 1) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, -3);
                     this.meshes[y][x] = new THREE.Mesh(geometry, material);
                     this.meshes[y][x].position = pos;
-                    this.meshes[y][x].castShadow = true;
+                    this.meshes[y][x].castShadow = false;
                     this.meshes[y][x].receiveShadow = true;
-                } else if (this.map[y][x] === 1) {
+                } else {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1)
                     this.meshes[y][x] = new THREE.Mesh(geometry, darkMaterial);
                     this.meshes[y][x].position = pos;

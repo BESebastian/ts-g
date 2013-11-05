@@ -31,14 +31,14 @@ class Renderer {
 
         this.renderer.setSize(this.container.offsetWidth, this.container.offsetHeight);
         this.renderer.shadowMapEnabled = true;
-        this.renderer.shadowMapSoft = true;
+        this.renderer.shadowMapType = THREE.PCFSoftShadowMap;
 
         this.renderer.domElement.id = 'viewport';
         this.camera.position.set(0, 0, 50);
 
         this.light = new THREE.SpotLight(0xffffff, 0.8);
         this.light.castShadow = true;
-        this.light.position.set(35, 20, 50);
+        this.light.position.set(35, 20, 100);
         this.light.shadowDarkness = 1;
         this.light.target.position.x = 35;
         this.light.target.position.y = 20;
