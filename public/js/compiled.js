@@ -79,6 +79,15 @@ var Item = (function () {
         this.speed = 0;
         this.hp = 0;
 
+        this.caster = new THREE.Raycaster();
+        this.distance = 1.5;
+        this.rays = [
+            new THREE.Vector3(-1, 0, 0),
+            new THREE.Vector3(1, 0, 0),
+            new THREE.Vector3(0, 1, 0),
+            new THREE.Vector3(0, -1, 0)
+        ];
+
         var geometry = new THREE.CubeGeometry(1, 1, 1);
         var material = new THREE.MeshPhongMaterial({ color: 0xFF0000 });
         this.model = THREE.SceneUtils.createMultiMaterialObject(geometry, [material]);
@@ -93,7 +102,21 @@ var Item = (function () {
     };
 
     Item.prototype.checkCollision = function (player) {
-        return false;
+        var collisions = [];
+        var _this = this;
+        var returnVal = false;
+        for (var i = 0; i < this.rays.length; i++) {
+            this.caster.set(this.model.position, this.rays[i]);
+            collisions = this.caster.intersectObject(player.getModel(), true);
+            if (collisions.length > 0) {
+                collisions.forEach(function (collision) {
+                    if (collision.distance <= _this.distance) {
+                        returnVal = true;
+                    }
+                });
+            }
+        }
+        return returnVal;
     };
 
     Item.prototype.getModel = function () {
@@ -549,6 +572,7 @@ var Game = (function () {
             if (item.checkCollision(_this.player)) {
                 _this.roomItems.splice(_this.roomItems.indexOf(item), 1);
                 _this.renderer.scene.remove(item.getModel());
+                _this.player.pickupItem(item);
             }
             item.update();
         });

@@ -92,6 +92,7 @@ class Game {
             if (item.checkCollision(_this.player)) {
                 _this.roomItems.splice(_this.roomItems.indexOf(item), 1);
                 _this.renderer.scene.remove(item.getModel());
+                _this.player.pickupItem(item);
             }
             item.update();
         });
