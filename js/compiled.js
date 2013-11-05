@@ -15,14 +15,14 @@ var Renderer = (function () {
 
         this.renderer.setSize(this.container.offsetWidth, this.container.offsetHeight);
         this.renderer.shadowMapEnabled = true;
-        this.renderer.shadowMapSoft = true;
+        this.renderer.shadowMapType = THREE.PCFSoftShadowMap;
 
         this.renderer.domElement.id = 'viewport';
         this.camera.position.set(0, 0, 50);
 
         this.light = new THREE.SpotLight(0xffffff, 0.8);
         this.light.castShadow = true;
-        this.light.position.set(35, 20, 50);
+        this.light.position.set(35, 20, 100);
         this.light.shadowDarkness = 1;
         this.light.target.position.x = 35;
         this.light.target.position.y = 20;
@@ -485,13 +485,13 @@ var TestWorld2 = (function () {
         var darkMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
         for (var y = 0; y < this.map.length; y++) {
             for (var x = 0; x < this.map[0].length; x++) {
-                if (this.map[y][x] === 0 || this.map[y][x] === 2 || this.map[y][x] === 3) {
+                if (this.map[y][x] !== 1) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, -3);
                     this.meshes[y][x] = new THREE.Mesh(geometry, material);
                     this.meshes[y][x].position = pos;
-                    this.meshes[y][x].castShadow = true;
+                    this.meshes[y][x].castShadow = false;
                     this.meshes[y][x].receiveShadow = true;
-                } else if (this.map[y][x] === 1) {
+                } else {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
                     this.meshes[y][x] = new THREE.Mesh(geometry, darkMaterial);
                     this.meshes[y][x].position = pos;
