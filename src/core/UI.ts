@@ -2,8 +2,10 @@ class UI {
 
     private canvas:     HTMLCanvasElement;
     private context;
+    private messages;
 
     constructor() {
+        this.messages = [];
         this.canvas = document.createElement('canvas');
         var view = document.getElementById('viewport').getBoundingClientRect();
         this.canvas.id = 'ui-layer';
@@ -18,7 +20,29 @@ class UI {
 
     public draw():void {}
 
-    public update():void {}
+    public update(player: Player):void {
+        this.clear();
+        this.messageLog();
+        this.debug(player);
+    }
+
+    private messageLog():void {
+        this.context.font = '12pt monospace';
+        this.context.fillStyle = 'white';
+        this.context.textAlign = 'right';
+        var startY = this.canvas.height - 30;
+        for (var i = this.messages.length - 1; i >= 0; i--) {
+            this.context.fillText(this.messages[i], this.canvas.width - 20, startY);
+            startY -= 16;
+        }
+    }
+
+    public addMessage(str: string):void {
+        this.messages.push(str);
+        if (this.messages.length > 5) {
+            this.messages.splice(0, 1);
+        }
+    }
 
     private clear():void {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -26,7 +50,6 @@ class UI {
     }
 
     public debug(player: Player):void {
-        this.clear();
         var debugBuilder = new DebugBuilder();
         debugBuilder.addLine('x: ' + player.getPosition().x + ' y: ' + player.getPosition().y);
         debugBuilder.addLine('hp: ' + player.getHp() + '/' + player.getMaxHp());
@@ -56,6 +79,7 @@ class DebugBuilder {
     public render(context):void {
         var startY = 30;
         context.font = '12pt monospace';
+        context.textAlign = 'left';
         context.fillStyle = 'white';
         for (var i = 0; i < this.strings.length; i++) {
             context.fillText(this.strings[i], 20, startY);

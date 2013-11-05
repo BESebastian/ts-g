@@ -77,8 +77,7 @@ class Game {
     private update():void {
         var _this = this;
         this.player.update();
-        this.ui.update();
-        this.ui.debug(this.player);
+        this.ui.update(this.player);
         this.entities.forEach(function (entity) {
             if (entity.checkCollision(_this.world.getObstacles())) {
                 _this.entities.splice(_this.entities.indexOf(entity), 1);
@@ -91,6 +90,7 @@ class Game {
                 _this.roomItems.splice(_this.roomItems.indexOf(item), 1);
                 _this.renderer.scene.remove(item.getModel());
                 _this.player.pickupItem(item);
+                _this.ui.addMessage('You picked up: ' + item.getName());
             }
             item.update();
         });

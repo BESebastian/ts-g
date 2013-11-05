@@ -64,6 +64,10 @@ class Item implements Drawable, Updatable {
         return returnVal;
     }
 
+    public getName():string {
+        return this.name;
+    }
+
     public setModel(model: THREE.Object3D):Item {
         this.model = model;
         return this;

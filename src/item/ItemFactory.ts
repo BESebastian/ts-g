@@ -16,7 +16,7 @@ class ItemFactory {
     }
 
     public spawnArmour():Item {
-        var item = new Item('Armour+');
+        var item = new Item('Armour');
         item.setArmour(1);
         var geometry = new THREE.CubeGeometry(1, 1, 1);
         var material = new THREE.MeshPhongMaterial({ color: 0x0000FF });

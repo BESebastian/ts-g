@@ -126,6 +126,10 @@ var Item = (function () {
         return returnVal;
     };
 
+    Item.prototype.getName = function () {
+        return this.name;
+    };
+
     Item.prototype.setModel = function (model) {
         this.model = model;
         return this;
@@ -188,7 +192,7 @@ var ItemFactory = (function () {
     };
 
     ItemFactory.prototype.spawnArmour = function () {
-        var item = new Item('Armour+');
+        var item = new Item('Armour');
         item.setArmour(1);
         var geometry = new THREE.CubeGeometry(1, 1, 1);
         var material = new THREE.MeshPhongMaterial({ color: 0x0000FF });
@@ -456,13 +460,13 @@ var TestWorld2 = (function () {
 
         this.map = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 1],
+            [1, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 3, 3, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 3, 0, 2, 0, 1],
             [1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1],
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         ];
 
@@ -478,6 +482,7 @@ var TestWorld2 = (function () {
     TestWorld2.prototype.generateMeshes = function () {
         var geometry = new THREE.CubeGeometry(this.tileSize, this.tileSize, this.tileSize);
         var material = new THREE.MeshPhongMaterial();
+        var darkMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
         for (var y = 0; y < this.map.length; y++) {
             for (var x = 0; x < this.map[0].length; x++) {
                 if (this.map[y][x] === 0 || this.map[y][x] === 2 || this.map[y][x] === 3) {
@@ -488,7 +493,7 @@ var TestWorld2 = (function () {
                     this.meshes[y][x].receiveShadow = true;
                 } else if (this.map[y][x] === 1) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
-                    this.meshes[y][x] = new THREE.Mesh(geometry, material);
+                    this.meshes[y][x] = new THREE.Mesh(geometry, darkMaterial);
                     this.meshes[y][x].position = pos;
                     this.meshes[y][x].castShadow = true;
                     this.meshes[y][x].receiveShadow = true;
@@ -526,6 +531,7 @@ var TestWorld2 = (function () {
 })();
 var UI = (function () {
     function UI() {
+        this.messages = [];
         this.canvas = document.createElement('canvas');
         var view = document.getElementById('viewport').getBoundingClientRect();
         this.canvas.id = 'ui-layer';
@@ -540,7 +546,28 @@ var UI = (function () {
     UI.prototype.draw = function () {
     };
 
-    UI.prototype.update = function () {
+    UI.prototype.update = function (player) {
+        this.clear();
+        this.messageLog();
+        this.debug(player);
+    };
+
+    UI.prototype.messageLog = function () {
+        this.context.font = '12pt monospace';
+        this.context.fillStyle = 'white';
+        this.context.textAlign = 'right';
+        var startY = this.canvas.height - 30;
+        for (var i = this.messages.length - 1; i >= 0; i--) {
+            this.context.fillText(this.messages[i], this.canvas.width - 20, startY);
+            startY -= 16;
+        }
+    };
+
+    UI.prototype.addMessage = function (str) {
+        this.messages.push(str);
+        if (this.messages.length > 5) {
+            this.messages.splice(0, 1);
+        }
     };
 
     UI.prototype.clear = function () {
@@ -549,7 +576,6 @@ var UI = (function () {
     };
 
     UI.prototype.debug = function (player) {
-        this.clear();
         var debugBuilder = new DebugBuilder();
         debugBuilder.addLine('x: ' + player.getPosition().x + ' y: ' + player.getPosition().y);
         debugBuilder.addLine('hp: ' + player.getHp() + '/' + player.getMaxHp());
@@ -574,6 +600,7 @@ var DebugBuilder = (function () {
     DebugBuilder.prototype.render = function (context) {
         var startY = 30;
         context.font = '12pt monospace';
+        context.textAlign = 'left';
         context.fillStyle = 'white';
         for (var i = 0; i < this.strings.length; i++) {
             context.fillText(this.strings[i], 20, startY);
@@ -631,8 +658,7 @@ var Game = (function () {
     Game.prototype.update = function () {
         var _this = this;
         this.player.update();
-        this.ui.update();
-        this.ui.debug(this.player);
+        this.ui.update(this.player);
         this.entities.forEach(function (entity) {
             if (entity.checkCollision(_this.world.getObstacles())) {
                 _this.entities.splice(_this.entities.indexOf(entity), 1);
@@ -645,6 +671,7 @@ var Game = (function () {
                 _this.roomItems.splice(_this.roomItems.indexOf(item), 1);
                 _this.renderer.scene.remove(item.getModel());
                 _this.player.pickupItem(item);
+                _this.ui.addMessage('You picked up: ' + item.getName());
             }
             item.update();
         });
