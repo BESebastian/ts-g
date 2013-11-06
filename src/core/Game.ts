@@ -2,9 +2,10 @@
 ///<reference path='Input.ts' />
 ///<reference path='AssetManager.ts' />
 ///<reference path='../item/ItemFactory.ts' />
+///<reference path='../item/ItemPools.ts' />
 ///<reference path='../creature/CreatureFactory.ts' />
 ///<reference path='../entities/Projectile.ts' />
-///<reference path='TestWorld2.ts' />
+///<reference path='World.ts' />
 ///<reference path='UI.ts' />
 
 class Game {
@@ -15,14 +16,15 @@ class Game {
     private input:      Input;
     private assets:     AssetManager;
     private cf:         CreatureFactory;
-    private if:         ItemFactory;
-    private world:      TestWorld2;
+    private world:      World;
     private entities;
     private width:      number;
     private height:     number;
     private tileSize:   number;
     private ui:         UI;
     private roomItems:  Item[];
+    private itemPool;
+    private collectablePool;
 
     constructor() {
         this.assets   = new AssetManager();
@@ -37,12 +39,14 @@ class Game {
             1.5
         );
 
+        this.itemPool = new ItemPools().getItemPool();
+        this.collectablePool = new ItemPools().getCollectablePool();
+
         this.renderer = new Renderer(this.width, this.height, this.tileSize);
         this.input    = new Input();
         this.cf       = new CreatureFactory();
-        this.if       = new ItemFactory();
         this.player   = this.cf.spawnPlayer(spawnPos);
-        this.world    = new TestWorld2(THREE.ImageUtils.loadTexture('../assets/test.png'), this.tileSize);
+        this.world    = new World(THREE.ImageUtils.loadTexture('../assets/test.png'), this.tileSize, this.itemPool, this.collectablePool);
         this.entities = [];
         this.ui       = new UI();
 

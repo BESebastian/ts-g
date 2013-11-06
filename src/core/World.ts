@@ -1,4 +1,4 @@
-class TestWorld2 {
+class World {
 
     public  tileSize:       number;
     public  meshes:         THREE.Object3D[][];
@@ -8,19 +8,19 @@ class TestWorld2 {
     private items;
     private itemFactory:    ItemFactory;
 
-    constructor(texture, tileSize) {
+    constructor(texture, tileSize, itemPool, collectablePool) {
         this.tileSize = tileSize;
         this.texture = texture;
 
-        this.itemFactory = new ItemFactory();
+        this.itemFactory = new ItemFactory(itemPool, collectablePool);
         this.items = [];
 
         this.map = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 3, 3, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-            [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 2, 0, 1],
-            [1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 1],
+            [1, 3, 3, 0, 1, 0, 0, 0, 0, 0, 1, 2, 2, 0, 1],
+            [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
+            [1, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
             [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 2, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -43,6 +43,7 @@ class TestWorld2 {
         var darkMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
         for (var y = 0; y < this.map.length; y++) {
             for (var x = 0; x < this.map[0].length; x++) {
+                // 1 is a wall, for now draw the floor if it exists
                 if (this.map[y][x] !== 1) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, -3);
                     this.meshes[y][x] = new THREE.Mesh(geometry, material);
@@ -59,15 +60,15 @@ class TestWorld2 {
                 }
 
                 // Item guff
-                if (this.map[y][x] === 2) {
+                if (this.map[y][x] === 3) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
-                    var item = this.itemFactory.spawnShotDelay();
+                    var item = this.itemFactory.itemPoolRandom();
                     item.setPosition(pos);
                     this.items.push(item);
                 }
-                if (this.map[y][x] === 3) {
+                if (this.map[y][x] === 2) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
-                    var item = this.itemFactory.spawnArmour();
+                    var item = this.itemFactory.collectablePoolRandom();
                     item.setPosition(pos);
                     this.items.push(item);
                 }

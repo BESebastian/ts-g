@@ -32,7 +32,7 @@ class Item implements Drawable, Updatable {
         ];
 
         var geometry = new THREE.CubeGeometry(1, 1, 1);
-        var material = new THREE.MeshPhongMaterial({ color: 0xFF0000 });
+        var material = new THREE.MeshPhongMaterial();
         this.model = new THREE.Mesh(geometry, material);
         this.model.castShadow = true;
         this.model.receiveShadow = true;
@@ -46,6 +46,14 @@ class Item implements Drawable, Updatable {
         this.model.rotation.y += 0.01;
     }
 
+    private handlePickup(player: Player):boolean {
+        var returnVal = true;
+        if (this.maxHp === 0 && this.hp > 0 && player.getHp() === player.getMaxHp()) {
+            return false;
+        }
+        return true;
+    }
+
     public checkCollision(player: Player):boolean {
         var collisions = [];
         var _this = this;
@@ -56,7 +64,7 @@ class Item implements Drawable, Updatable {
             if (collisions.length > 0) {
                 collisions.forEach(function (collision) {
                     if (collision.distance <= _this.distance) {
-                        returnVal = true;
+                        returnVal = _this.handlePickup(player);
                     }
                 });
             }
@@ -69,7 +77,7 @@ class Item implements Drawable, Updatable {
     }
 
     public setModel(model: THREE.Object3D):Item {
-        this.model = model;
+        this.model = model || this.model;
         return this;
     }
 

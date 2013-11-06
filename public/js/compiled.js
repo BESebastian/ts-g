@@ -94,7 +94,7 @@ var Item = (function () {
         ];
 
         var geometry = new THREE.CubeGeometry(1, 1, 1);
-        var material = new THREE.MeshPhongMaterial({ color: 0xFF0000 });
+        var material = new THREE.MeshPhongMaterial();
         this.model = new THREE.Mesh(geometry, material);
         this.model.castShadow = true;
         this.model.receiveShadow = true;
@@ -108,6 +108,14 @@ var Item = (function () {
         this.model.rotation.y += 0.01;
     };
 
+    Item.prototype.handlePickup = function (player) {
+        var returnVal = true;
+        if (this.maxHp === 0 && this.hp > 0 && player.getHp() === player.getMaxHp()) {
+            return false;
+        }
+        return true;
+    };
+
     Item.prototype.checkCollision = function (player) {
         var collisions = [];
         var _this = this;
@@ -118,7 +126,7 @@ var Item = (function () {
             if (collisions.length > 0) {
                 collisions.forEach(function (collision) {
                     if (collision.distance <= _this.distance) {
-                        returnVal = true;
+                        returnVal = _this.handlePickup(player);
                     }
                 });
             }
@@ -131,7 +139,7 @@ var Item = (function () {
     };
 
     Item.prototype.setModel = function (model) {
-        this.model = model;
+        this.model = model || this.model;
         return this;
     };
 
@@ -176,46 +184,87 @@ var Item = (function () {
     return Item;
 })();
 var ItemFactory = (function () {
-    function ItemFactory() {
+    function ItemFactory(itemPool, collectablePool) {
+        this.itemPool = itemPool;
+        this.collectablePool = collectablePool;
     }
-    ItemFactory.prototype.spawnHp = function () {
-        var item = new Item('Hp Restore');
-        item.setHp(1);
+    ItemFactory.prototype.itemPoolRandom = function () {
+        var r = Math.floor(Math.random() * this.itemPool.length);
+        var rand = this.itemPool[r];
+        var item = new Item(rand.name || 'undefined').setHp(rand.hp || 0).setSpeed(rand.speed || 0).setShotSpeed(rand.shotSpeed || 0).setShotDelay(rand.shotDelay || 0).setArmour(rand.armour || 0).setMaxHp(rand.maxHp || 0).setModel(rand.model);
+        this.itemPool.splice(r, 1);
         return item;
     };
 
-    ItemFactory.prototype.spawnHpUp = function () {
-        var item = new Item('Hp+');
-        item.setMaxHp(1);
-        item.setHp(1);
-        return item;
-    };
-
-    ItemFactory.prototype.spawnArmour = function () {
-        var item = new Item('Armour');
-        item.setArmour(1);
-        var geometry = new THREE.CubeGeometry(1, 1, 1);
-        var material = new THREE.MeshPhongMaterial({ color: 0x0000FF });
-        var model = new THREE.Mesh(geometry, material);
-        model.castShadow = true;
-        model.receiveShadow = true;
-        item.setModel(model);
-
-        return item;
-    };
-
-    ItemFactory.prototype.spawnShotSpeed = function () {
-        var item = new Item('Shot Speed Shit');
-        item.setShotSpeed(1);
-        return item;
-    };
-
-    ItemFactory.prototype.spawnShotDelay = function () {
-        var item = new Item('Reduce Shot Delay');
-        item.setShotDelay(-0.2);
+    ItemFactory.prototype.collectablePoolRandom = function () {
+        var r = Math.floor(Math.random() * this.collectablePool.length);
+        var rand = this.collectablePool[r];
+        var item = new Item(rand.name || 'undefined').setHp(rand.hp || 0).setArmour(rand.armour || 0).setModel(rand.model());
         return item;
     };
     return ItemFactory;
+})();
+var ItemPools = (function () {
+    function ItemPools() {
+    }
+    ItemPools.prototype.getItemPool = function () {
+        return [
+            {
+                name: 'Dinner',
+                maxHp: 1,
+                hp: 1
+            },
+            {
+                name: 'Breakfast',
+                maxHp: 1,
+                hp: 1
+            },
+            {
+                name: 'Lard',
+                maxHp: 2,
+                hp: 2,
+                speed: -0.1
+            },
+            {
+                name: 'Shot Speed',
+                shotSpeed: 0.1
+            },
+            {
+                name: 'Shot Delay',
+                shotDelay: -0.2
+            }
+        ];
+    };
+
+    ItemPools.prototype.getCollectablePool = function () {
+        return [
+            {
+                name: 'Hp',
+                hp: 1,
+                model: function () {
+                    var geometry = new THREE.CubeGeometry(1, 1, 1);
+                    var material = new THREE.MeshPhongMaterial({ color: 0xFF0000 });
+                    var model = new THREE.Mesh(geometry, material);
+                    model.castShadow = true;
+                    model.receiveShadow = true;
+                    return model;
+                }
+            },
+            {
+                name: 'Armour',
+                armour: 1,
+                model: function () {
+                    var geometry = new THREE.CubeGeometry(1, 1, 1);
+                    var material = new THREE.MeshPhongMaterial({ color: 0x0000FF });
+                    var model = new THREE.Mesh(geometry, material);
+                    model.castShadow = true;
+                    model.receiveShadow = true;
+                    return model;
+                }
+            }
+        ];
+    };
+    return ItemPools;
 })();
 var Creature = (function () {
     function Creature() {
@@ -450,20 +499,20 @@ var Projectile = (function (_super) {
     };
     return Projectile;
 })(Thing);
-var TestWorld2 = (function () {
-    function TestWorld2(texture, tileSize) {
+var World = (function () {
+    function World(texture, tileSize, itemPool, collectablePool) {
         this.tileSize = tileSize;
         this.texture = texture;
 
-        this.itemFactory = new ItemFactory();
+        this.itemFactory = new ItemFactory(itemPool, collectablePool);
         this.items = [];
 
         this.map = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 3, 3, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
-            [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 2, 0, 1],
-            [1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 1],
+            [1, 3, 3, 0, 1, 0, 0, 0, 0, 0, 1, 2, 2, 0, 1],
+            [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
+            [1, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
             [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 2, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -479,7 +528,7 @@ var TestWorld2 = (function () {
 
         this.generateMeshes();
     }
-    TestWorld2.prototype.generateMeshes = function () {
+    World.prototype.generateMeshes = function () {
         var geometry = new THREE.CubeGeometry(this.tileSize, this.tileSize, this.tileSize);
         var material = new THREE.MeshPhongMaterial();
         var darkMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
@@ -500,15 +549,15 @@ var TestWorld2 = (function () {
                     this.obstacles.push(this.meshes[y][x]);
                 }
 
-                if (this.map[y][x] === 2) {
+                if (this.map[y][x] === 3) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
-                    var item = this.itemFactory.spawnShotDelay();
+                    var item = this.itemFactory.itemPoolRandom();
                     item.setPosition(pos);
                     this.items.push(item);
                 }
-                if (this.map[y][x] === 3) {
+                if (this.map[y][x] === 2) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
-                    var item = this.itemFactory.spawnArmour();
+                    var item = this.itemFactory.collectablePoolRandom();
                     item.setPosition(pos);
                     this.items.push(item);
                 }
@@ -516,18 +565,18 @@ var TestWorld2 = (function () {
         }
     };
 
-    TestWorld2.prototype.getObstacles = function () {
+    World.prototype.getObstacles = function () {
         return this.obstacles;
     };
 
-    TestWorld2.prototype.getModel = function (x, y) {
+    World.prototype.getModel = function (x, y) {
         return this.meshes[y][x];
     };
 
-    TestWorld2.prototype.getRoomItems = function () {
+    World.prototype.getRoomItems = function () {
         return this.items;
     };
-    return TestWorld2;
+    return World;
 })();
 var UI = (function () {
     function UI() {
@@ -619,12 +668,14 @@ var Game = (function () {
 
         var spawnPos = new THREE.Vector3(((this.width * this.tileSize) / 2) + (this.tileSize / 2), ((this.height * this.tileSize) / 2) + (this.tileSize / 2), 1.5);
 
+        this.itemPool = new ItemPools().getItemPool();
+        this.collectablePool = new ItemPools().getCollectablePool();
+
         this.renderer = new Renderer(this.width, this.height, this.tileSize);
         this.input = new Input();
         this.cf = new CreatureFactory();
-        this.if = new ItemFactory();
         this.player = this.cf.spawnPlayer(spawnPos);
-        this.world = new TestWorld2(THREE.ImageUtils.loadTexture('../assets/test.png'), this.tileSize);
+        this.world = new World(THREE.ImageUtils.loadTexture('../assets/test.png'), this.tileSize, this.itemPool, this.collectablePool);
         this.entities = [];
         this.ui = new UI();
 
