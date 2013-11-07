@@ -521,12 +521,17 @@ var Room = (function () {
 var Floor = (function () {
     function Floor() {
         this.rooms = [];
-        this.rooms[0] = [];
+        this.rooms.length = 6;
+        for (var i = 0; i < this.rooms.length; i++) {
+            this.rooms[i] = [];
+            this.rooms[i].length = 9;
+        }
+        ;
         this.buildRooms();
     }
     Floor.prototype.buildRooms = function () {
-        this.rooms[0].push(new Room());
-        this.rooms[0].push(new Room());
+        this.rooms[0][0] = new Room();
+        this.rooms[0][1] = new Room();
     };
 
     Floor.prototype.getRooms = function () {
