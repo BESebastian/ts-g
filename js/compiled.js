@@ -499,15 +499,9 @@ var Projectile = (function (_super) {
     };
     return Projectile;
 })(Thing);
-var World = (function () {
-    function World(texture, tileSize, itemPool, collectablePool) {
-        this.tileSize = tileSize;
-        this.texture = texture;
-
-        this.itemFactory = new ItemFactory(itemPool, collectablePool);
-        this.items = [];
-
-        this.map = [
+var Room = (function () {
+    function Room() {
+        this.layout = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
             [1, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 1],
             [1, 3, 3, 0, 1, 0, 0, 0, 0, 0, 1, 2, 2, 0, 1],
@@ -518,6 +512,42 @@ var World = (function () {
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         ];
+    }
+    Room.prototype.getLayout = function () {
+        return this.layout;
+    };
+    return Room;
+})();
+var Floor = (function () {
+    function Floor() {
+        this.rooms = [];
+        this.rooms[0] = [];
+        this.buildRooms();
+    }
+    Floor.prototype.buildRooms = function () {
+        this.rooms[0].push(new Room());
+        this.rooms[0].push(new Room());
+    };
+
+    Floor.prototype.getRooms = function () {
+        return this.rooms;
+    };
+    return Floor;
+})();
+var World = (function () {
+    function World(texture, tileSize, itemPool, collectablePool) {
+        this.tileSize = tileSize;
+        this.texture = texture;
+
+        this.itemFactory = new ItemFactory(itemPool, collectablePool);
+        this.items = [];
+
+        this.depth = 0;
+        this.mapPos = new THREE.Vector2(0, 0);
+
+        this.floors = [];
+        this.floors[0] = new Floor();
+        this.map = this.floors[this.depth].getRooms()[this.mapPos.y][this.mapPos.x].getLayout();
 
         this.meshes = [];
         this.obstacles = [];
