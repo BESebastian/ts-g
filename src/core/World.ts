@@ -1,12 +1,17 @@
+///<reference path="Floor.ts" />
+
 class World {
 
     public  tileSize:       number;
     public  meshes:         THREE.Object3D[][];
-    public  map;
+    public  map:            number[][];
     private texture:        THREE.Texture;
-    private obstacles;
-    private items;
+    private obstacles:      THREE.Object3D[];
+    private items:          Item[];
     private itemFactory:    ItemFactory;
+    private floors:         Floor[];
+    private depth:          number;
+    private mapPos:         THREE.Vector2;
 
     constructor(texture, tileSize, itemPool, collectablePool) {
         this.tileSize = tileSize;
@@ -15,17 +20,14 @@ class World {
         this.itemFactory = new ItemFactory(itemPool, collectablePool);
         this.items = [];
 
-        this.map = [
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 1],
-            [1, 3, 3, 0, 1, 0, 0, 0, 0, 0, 1, 2, 2, 0, 1],
-            [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
-            [1, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
-            [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 2, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        ];
+        this.depth = 0;
+        this.mapPos = new THREE.Vector2(0, 0);
+
+        this.floors = [];
+        this.floors[0] = new Floor();
+        this.map = this.floors[this.depth]
+            .getRooms()[this.mapPos.y][this.mapPos.x]
+            .getLayout();
 
         this.meshes = [];
         this.obstacles = [];
