@@ -499,6 +499,107 @@ var Projectile = (function (_super) {
     };
     return Projectile;
 })(Thing);
+var FloorGenerator = (function () {
+    function FloorGenerator(w, h, max) {
+        this.width = w;
+        this.height = h;
+        this.maxRooms = max;
+        this.rooms = [];
+        this.layout = this.initLayout();
+
+        var spawnLocation = this.shuffleArray([
+            [2, 4],
+            [2, 5],
+            [2, 6],
+            [3, 4],
+            [3, 5],
+            [3, 6]
+        ])[0];
+
+        this.spawn = {
+            x: spawnLocation[1],
+            y: spawnLocation[0]
+        };
+    }
+    FloorGenerator.prototype.generate = function () {
+        this.layout[this.spawn.y][this.spawn.x] = 1;
+        this.rooms.push([this.spawn.x, this.spawn.y]);
+        this.makeRoom(this.spawn.x, this.spawn.y);
+        this.layout[this.spawn.y][this.spawn.x] = 9;
+        return this.layout;
+    };
+
+    FloorGenerator.prototype.makeRoom = function (x, y) {
+        if (this.rooms.length >= this.maxRooms) {
+            return;
+        }
+        var neighbours = this.getNeighbours(x, y);
+        var chanceIt = true;
+        if (neighbours.length > 2) {
+            chanceIt = (Math.floor(Math.random() * 10) < 5);
+        }
+        if (neighbours[0] !== undefined && chanceIt) {
+            var nx = neighbours[0][0];
+            var ny = neighbours[0][1];
+            this.layout[ny][nx] = 1;
+            this.rooms.push([nx, ny]);
+        }
+        var next = this.getNextRoom();
+        this.makeRoom(next[0], next[1]);
+    };
+
+    FloorGenerator.prototype.getNextRoom = function () {
+        return this.rooms[Math.floor(Math.random() * this.rooms.length)];
+    };
+
+    FloorGenerator.prototype.getNeighbours = function (x, y) {
+        var directions = this.shuffleArray([
+            [x, y - 1],
+            [x, y + 1],
+            [x + 1, y],
+            [x - 1, y]
+        ]);
+        var neighbours = [];
+        var _this = this;
+        directions.forEach(function (direction) {
+            if (!_this.isInvalid(direction[0], direction[1])) {
+                neighbours.push(direction);
+            }
+        });
+        return neighbours;
+    };
+
+    FloorGenerator.prototype.initLayout = function () {
+        var a = [];
+        a.length = this.height;
+        for (var y = 0; y < this.height; y++) {
+            a[y] = [];
+            a[y].length = this.width;
+            for (var x = 0; x < this.width; x++) {
+                a[y][x] = 0;
+            }
+        }
+        return a;
+    };
+
+    FloorGenerator.prototype.isInvalid = function (x, y) {
+        if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
+            return true;
+        }
+        return (this.layout[y][x] === 1);
+    };
+
+    FloorGenerator.prototype.shuffleArray = function (array) {
+        for (var i = array.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+        }
+        return array;
+    };
+    return FloorGenerator;
+})();
 var Room = (function () {
     function Room() {
         this.layout = [
@@ -527,7 +628,10 @@ var Floor = (function () {
             this.rooms[i].length = 9;
         }
         ;
+        this.layout = new FloorGenerator(6, 9, 10).generate();
+
         this.buildRooms();
+        console.log(this);
     }
     Floor.prototype.buildRooms = function () {
         this.rooms[0][0] = new Room();
