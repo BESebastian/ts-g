@@ -1,8 +1,10 @@
+///<reference path="FloorGenerator.ts" />
 ///<reference path="Room.ts" />
 
 class Floor {
 
     private rooms;
+    private layout;
 
     constructor() {
         this.rooms = [];
@@ -11,7 +13,10 @@ class Floor {
             this.rooms[i] = [];
             this.rooms[i].length = 9;
         };
+        this.layout = new FloorGenerator(6, 9, 10).generate();
+
         this.buildRooms();
+        console.log(this);
     }
 
     private buildRooms() {
