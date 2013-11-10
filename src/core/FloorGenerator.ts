@@ -1,3 +1,5 @@
+///<reference path="Room.ts" />
+
 class FloorGenerator {
 
     private width:      number;
@@ -6,13 +8,15 @@ class FloorGenerator {
     private rooms:      any[];
     private spawn:      any;
     private layout:     any[];
+    private offsets:    THREE.Vector2;
 
-    constructor(w: number, h: number, max: number) {
+    constructor(w: number, h: number, max: number, offsets: THREE.Vector2) {
         this.width = w;
         this.height = h;
         this.maxRooms = max;
         this.rooms = [];
         this.layout = this.initLayout();
+        this.offsets = offsets;
 
         var spawnLocation = this.shuffleArray([
             [2, 4],
@@ -29,12 +33,24 @@ class FloorGenerator {
         };
     }
 
-    public generate() {
+    public generate():FloorGenerator {
         this.layout[this.spawn.y][this.spawn.x] = 1;
         this.rooms.push([this.spawn.x, this.spawn.y]);
         this.makeRoom(this.spawn.x, this.spawn.y);
         this.layout[this.spawn.y][this.spawn.x] = 9;
-        return this.layout;
+        return this;
+    }
+
+    public build() {
+        var floor = this.initLayout();
+        for (var y = 0; y < this.height; y++) {
+            for (var x = 0; x < this.width; x++) {
+                if (this.layout[y][x] !== 0) {
+                    floor[y][x] = new Room(new THREE.Vector2(x, y), this.offsets);
+                }
+            }
+        }
+        return floor;
     }
 
     private makeRoom(x: number, y: number) {
@@ -54,11 +70,11 @@ class FloorGenerator {
         this.makeRoom(next[0], next[1]);
     }
 
-    private getNextRoom(): any[] {
+    private getNextRoom():any[] {
         return this.rooms[Math.floor(Math.random() * this.rooms.length)];
     }
 
-    private getNeighbours(x: number, y: number): any[] {
+    private getNeighbours(x: number, y: number):any[] {
         var directions = this.shuffleArray([
             [x, y - 1],
             [x, y + 1],

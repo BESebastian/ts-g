@@ -31,6 +31,8 @@ class ItemFactory {
         var item = new Item(rand.name || 'undefined')
             .setHp(rand.hp || 0)
             .setArmour(rand.armour || 0)
+            .setBombs(rand.bombs || 0)
+            .setKeys(rand.keys || 0)
             .setModel(rand.model());
         return item;
     }

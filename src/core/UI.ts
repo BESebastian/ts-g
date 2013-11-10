@@ -54,6 +54,8 @@ class UI {
         debugBuilder.addLine('x: ' + player.getPosition().x + ' y: ' + player.getPosition().y);
         debugBuilder.addLine('hp: ' + player.getHp() + '/' + player.getMaxHp());
         debugBuilder.addLine('armour: ' + player.getArmour());
+        debugBuilder.addLine('bombs: ' + player.getBombs());
+        debugBuilder.addLine('keys: ' + player.getKeys());
         debugBuilder.addLine('speed: ' + player.getSpeed());
         debugBuilder.addLine('shotDelay: ' + player.getShotDelay());
         debugBuilder.addLine('shotSpeed: ' + player.getShotSpeed());

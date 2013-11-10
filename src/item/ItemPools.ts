@@ -54,6 +54,30 @@ class ItemPools {
                     model.receiveShadow = true;
                     return model;
                 }
+            },
+            {
+                name: 'Bomb',
+                bombs: 1,
+                model: function() {
+                    var geometry = new THREE.CubeGeometry(1, 1, 1);
+                    var material = new THREE.MeshPhongMaterial({ color: 0x0000FF });
+                    var model = new THREE.Mesh(geometry, material);
+                    model.castShadow = true;
+                    model.receiveShadow = true;
+                    return model;
+                }
+            },
+            {
+                name: 'Key',
+                keys: 1,
+                model: function() {
+                    var geometry = new THREE.CubeGeometry(1, 1, 1);
+                    var material = new THREE.MeshPhongMaterial({ color: 0x0000FF });
+                    var model = new THREE.Mesh(geometry, material);
+                    model.castShadow = true;
+                    model.receiveShadow = true;
+                    return model;
+                }
             }
         ];
     }

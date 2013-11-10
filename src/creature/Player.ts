@@ -6,8 +6,10 @@ class Player extends Creature implements Collider {
     private firingCooldown: number;
     private shotSpeed:      number;
     private shotDelay:      number;
-    private inventory;
-    public  rays;
+    private bombs:          number;
+    private keys:           number;
+    private inventory:      Item[];
+    public  rays:           any[];
     public  distance:       number;
     public  caster:         THREE.Raycaster;
 
@@ -28,6 +30,8 @@ class Player extends Creature implements Collider {
         this.maxHp = 5;
         this.shotDelay = 1;
         this.hp = this.maxHp;
+        this.bombs = 1;
+        this.keys = 0;
         this.armour = 0;
         this.inventory = [];
         this.caster = new THREE.Raycaster();
@@ -104,6 +108,8 @@ class Player extends Creature implements Collider {
 
     public pickupItem(item):void {
         this.speed += item.speed;
+        this.bombs += item.bombs;
+        this.keys += item.keys;
         this.shotSpeed += item.shotSpeed;
         this.maxHp += item.maxHp;
         this.shotDelay += item.shotDelay;
@@ -118,6 +124,14 @@ class Player extends Creature implements Collider {
 
     public getInventory() {
         return this.inventory;
+    }
+
+    public getBombs():number {
+        return this.bombs;
+    }
+
+    public getKeys():number {
+        return this.keys;
     }
 
 }

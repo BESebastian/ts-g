@@ -5,11 +5,13 @@ class Item implements Drawable, Updatable {
     private speed:      number;
     private hp:         number;
     private maxHp:      number;
+    private bombs:      number;
+    private keys:       number;
     private armour:     number;
     private shotSpeed:  number;
     private shotDelay:  number;
     private name:       string;
-    private rays;
+    private rays:       any[];
     private distance:   number;
     private caster:     THREE.Raycaster;
 
@@ -21,6 +23,8 @@ class Item implements Drawable, Updatable {
         this.armour = 0;
         this.shotSpeed = 0;
         this.shotDelay = 0;
+        this.keys = 0;
+        this.bombs = 0;
 
         this.caster = new THREE.Raycaster();
         this.distance = 1.5;
@@ -117,6 +121,16 @@ class Item implements Drawable, Updatable {
 
     public setShotDelay(amt: number):Item {
         this.shotDelay = amt;
+        return this;
+    }
+
+    public setBombs(amt: number):Item {
+        this.bombs = amt;
+        return this;
+    }
+
+    public setKeys(amt: number):Item {
+        this.keys = amt;
         return this;
     }
 

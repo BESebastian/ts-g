@@ -52,12 +52,6 @@ class Game {
 
         this.renderer.scene.add(this.player.getModel());
 
-        for (var y = 0; y < this.world.map.length; y++) {
-            for (var x = 0; x < this.world.map[0].length; x++) {
-                this.renderer.scene.add(this.world.getModel(x, y));
-            }
-        }
-
         this.roomItems = this.world.getRoomItems();
         var _this = this;
         this.roomItems.forEach(function (item) {
@@ -116,6 +110,25 @@ class Game {
         }
         if (this.input.isPressed('87')) {
             this.player.move(obstacles, 0, this.player.speed);
+        }
+
+        if (this.input.isPressed('74')) {
+            this.renderer.camera.position.x -= 1;
+        }
+        if (this.input.isPressed('75')) {
+            this.renderer.camera.position.y -= 1;
+        }
+        if (this.input.isPressed('76')) {
+            this.renderer.camera.position.x += 1;
+        }
+        if (this.input.isPressed('73')) {
+            this.renderer.camera.position.y += 1;
+        }
+        if (this.input.isPressed('85')) {
+            this.renderer.camera.position.z += 1;
+        }
+        if (this.input.isPressed('79')) {
+            this.renderer.camera.position.z -= 1;
         }
 
         if (this.input.isPressed('37') && !this.player.hasFired()) {

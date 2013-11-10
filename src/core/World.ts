@@ -3,17 +3,20 @@
 class World {
 
     public  tileSize:       number;
-    public  meshes:         THREE.Object3D[][];
+    public  meshes;
     public  map:            number[][];
     private texture:        THREE.Texture;
-    private obstacles:      THREE.Object3D[];
+    private obstacles;
     private items:          Item[];
     private itemFactory:    ItemFactory;
     private floors:         Floor[];
     private depth:          number;
+    private maxDepth:       number;
     private mapPos:         THREE.Vector2;
+    private roomOffsets:    THREE.Vector2;
 
     constructor(texture, tileSize, itemPool, collectablePool) {
+        this.roomOffsets = new THREE.Vector2(70, 40);
         this.tileSize = tileSize;
         this.texture = texture;
 
@@ -21,58 +24,44 @@ class World {
         this.items = [];
 
         this.depth = 0;
+        this.maxDepth = 1;
         this.mapPos = new THREE.Vector2(0, 0);
 
         this.floors = [];
-        this.floors[0] = new Floor();
-        this.map = this.floors[this.depth]
-            .getRooms()[this.mapPos.y][this.mapPos.x]
-            .getLayout();
+        for (var d = 0; d < this.maxDepth; d++) {
+            this.floors[d] = new Floor(this.roomOffsets);
+        }
 
         this.meshes = [];
         this.obstacles = [];
 
-        for (var i = 0; i < this.map.length; i++) {
-            this.meshes[i] = [];
+        for (var y = 0; y < this.floors[this.depth].getLayout().length; y++) {
+            this.meshes[y] = [];
+            this.obstacles[y] = [];
+            this.meshes[y].length = this.floors[this.depth].getLayout()[0].length;
+            this.obstacles[y].length = this.floors[this.depth].getLayout()[0].length;
+            for (var x = 0; x < this.floors[this.depth].getLayout()[0].length; x++) {
+                this.meshes[y][x] = [];
+                this.obstacles[y][x] = [];
+            }
         }
 
-        this.generateMeshes();
+        console.log(this.meshes);
+
+        this.generateFloorMeshes();
     }
 
-    private generateMeshes():void {
+    private generateFloorMeshes() {
         var geometry = new THREE.CubeGeometry(this.tileSize, this.tileSize, this.tileSize);
         var material = new THREE.MeshPhongMaterial();
         var darkMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
-        for (var y = 0; y < this.map.length; y++) {
-            for (var x = 0; x < this.map[0].length; x++) {
-                // 1 is a wall, for now draw the floor if it exists
-                if (this.map[y][x] !== 1) {
-                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, -3);
-                    this.meshes[y][x] = new THREE.Mesh(geometry, material);
-                    this.meshes[y][x].position = pos;
-                    this.meshes[y][x].castShadow = false;
-                    this.meshes[y][x].receiveShadow = true;
-                } else {
-                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1)
-                    this.meshes[y][x] = new THREE.Mesh(geometry, darkMaterial);
-                    this.meshes[y][x].position = pos;
-                    this.meshes[y][x].castShadow = true;
-                    this.meshes[y][x].receiveShadow = true;
-                    this.obstacles.push(this.meshes[y][x]);
-                }
+        var currentLayout = this.floors[this.depth].getLayout();
 
-                // Item guff
-                if (this.map[y][x] === 3) {
-                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
-                    var item = this.itemFactory.itemPoolRandom();
-                    item.setPosition(pos);
-                    this.items.push(item);
-                }
-                if (this.map[y][x] === 2) {
-                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
-                    var item = this.itemFactory.collectablePoolRandom();
-                    item.setPosition(pos);
-                    this.items.push(item);
+        for (var y = 0; y < currentLayout.length; y++) {
+            for (var x = 0; x < currentLayout[0].length; x++) {
+                if (typeof currentLayout[y][x] === 'object') {
+                    this.meshes[y][x] = currentLayout[y][x].getMesh();
+                    this.obstacles[y][x].push(currentLayout[y][x].getObstacles());
                 }
             }
         }

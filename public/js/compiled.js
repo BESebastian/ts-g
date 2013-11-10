@@ -83,6 +83,8 @@ var Item = (function () {
         this.armour = 0;
         this.shotSpeed = 0;
         this.shotDelay = 0;
+        this.keys = 0;
+        this.bombs = 0;
 
         this.caster = new THREE.Raycaster();
         this.distance = 1.5;
@@ -181,6 +183,16 @@ var Item = (function () {
         this.shotDelay = amt;
         return this;
     };
+
+    Item.prototype.setBombs = function (amt) {
+        this.bombs = amt;
+        return this;
+    };
+
+    Item.prototype.setKeys = function (amt) {
+        this.keys = amt;
+        return this;
+    };
     return Item;
 })();
 var ItemFactory = (function () {
@@ -199,7 +211,7 @@ var ItemFactory = (function () {
     ItemFactory.prototype.collectablePoolRandom = function () {
         var r = Math.floor(Math.random() * this.collectablePool.length);
         var rand = this.collectablePool[r];
-        var item = new Item(rand.name || 'undefined').setHp(rand.hp || 0).setArmour(rand.armour || 0).setModel(rand.model());
+        var item = new Item(rand.name || 'undefined').setHp(rand.hp || 0).setArmour(rand.armour || 0).setBombs(rand.bombs || 0).setKeys(rand.keys || 0).setModel(rand.model());
         return item;
     };
     return ItemFactory;
@@ -253,6 +265,30 @@ var ItemPools = (function () {
             {
                 name: 'Armour',
                 armour: 1,
+                model: function () {
+                    var geometry = new THREE.CubeGeometry(1, 1, 1);
+                    var material = new THREE.MeshPhongMaterial({ color: 0x0000FF });
+                    var model = new THREE.Mesh(geometry, material);
+                    model.castShadow = true;
+                    model.receiveShadow = true;
+                    return model;
+                }
+            },
+            {
+                name: 'Bomb',
+                bombs: 1,
+                model: function () {
+                    var geometry = new THREE.CubeGeometry(1, 1, 1);
+                    var material = new THREE.MeshPhongMaterial({ color: 0x0000FF });
+                    var model = new THREE.Mesh(geometry, material);
+                    model.castShadow = true;
+                    model.receiveShadow = true;
+                    return model;
+                }
+            },
+            {
+                name: 'Key',
+                keys: 1,
                 model: function () {
                     var geometry = new THREE.CubeGeometry(1, 1, 1);
                     var material = new THREE.MeshPhongMaterial({ color: 0x0000FF });
@@ -337,6 +373,8 @@ var Player = (function (_super) {
         this.maxHp = 5;
         this.shotDelay = 1;
         this.hp = this.maxHp;
+        this.bombs = 1;
+        this.keys = 0;
         this.armour = 0;
         this.inventory = [];
         this.caster = new THREE.Raycaster();
@@ -412,6 +450,8 @@ var Player = (function (_super) {
 
     Player.prototype.pickupItem = function (item) {
         this.speed += item.speed;
+        this.bombs += item.bombs;
+        this.keys += item.keys;
         this.shotSpeed += item.shotSpeed;
         this.maxHp += item.maxHp;
         this.shotDelay += item.shotDelay;
@@ -424,6 +464,14 @@ var Player = (function (_super) {
 
     Player.prototype.getInventory = function () {
         return this.inventory;
+    };
+
+    Player.prototype.getBombs = function () {
+        return this.bombs;
+    };
+
+    Player.prototype.getKeys = function () {
+        return this.keys;
     };
     return Player;
 })(Creature);
@@ -499,13 +547,95 @@ var Projectile = (function (_super) {
     };
     return Projectile;
 })(Thing);
+var Room = (function () {
+    function Room(position, offset) {
+        this.explored = false;
+        this.obstacles = [];
+        this.meshes = [];
+        this.items = [];
+
+        this.tileSize = 5;
+        this.layout = [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 1],
+            [1, 3, 3, 0, 1, 0, 0, 0, 0, 0, 1, 2, 2, 0, 1],
+            [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
+            [1, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
+            [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 2, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        ];
+
+        for (var y = 0; y < this.layout.length; y++) {
+            this.obstacles[y] = [];
+            this.obstacles[y].length = this.layout[0].length;
+            this.meshes[y] = [];
+            this.meshes[y].length = this.layout[0].length;
+            this.items[y] = [];
+            this.items[y].length = this.layout[0].length;
+        }
+
+        this.generateMeshes();
+    }
+    Room.prototype.getLayout = function () {
+        return this.layout;
+    };
+
+    Room.prototype.getExplored = function () {
+        return this.explored;
+    };
+
+    Room.prototype.enterRoom = function () {
+        return this;
+    };
+
+    Room.prototype.completeRoom = function () {
+        this.explored = true;
+        return this;
+    };
+
+    Room.prototype.getMesh = function () {
+        return this.meshes;
+    };
+
+    Room.prototype.generateMeshes = function () {
+        var geometry = new THREE.CubeGeometry(this.tileSize, this.tileSize, this.tileSize);
+        var material = new THREE.MeshPhongMaterial();
+        var darkMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
+        for (var y = 0; y < this.layout.length; y++) {
+            for (var x = 0; x < this.layout[0].length; x++) {
+                if (this.layout[y][x] !== 1) {
+                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, -3);
+                    this.meshes[y][x] = new THREE.Mesh(geometry, material);
+                    this.meshes[y][x].position = pos;
+                    this.meshes[y][x].castShadow = false;
+                    this.meshes[y][x].receiveShadow = true;
+                } else {
+                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
+                    this.meshes[y][x] = new THREE.Mesh(geometry, darkMaterial);
+                    this.meshes[y][x].position = pos;
+                    this.meshes[y][x].castShadow = true;
+                    this.meshes[y][x].receiveShadow = true;
+                    this.obstacles.push(this.meshes[y][x]);
+                }
+            }
+        }
+    };
+
+    Room.prototype.getObstacles = function () {
+        return this.obstacles;
+    };
+    return Room;
+})();
 var FloorGenerator = (function () {
-    function FloorGenerator(w, h, max) {
+    function FloorGenerator(w, h, max, offsets) {
         this.width = w;
         this.height = h;
         this.maxRooms = max;
         this.rooms = [];
         this.layout = this.initLayout();
+        this.offsets = offsets;
 
         var spawnLocation = this.shuffleArray([
             [2, 4],
@@ -526,7 +656,19 @@ var FloorGenerator = (function () {
         this.rooms.push([this.spawn.x, this.spawn.y]);
         this.makeRoom(this.spawn.x, this.spawn.y);
         this.layout[this.spawn.y][this.spawn.x] = 9;
-        return this.layout;
+        return this;
+    };
+
+    FloorGenerator.prototype.build = function () {
+        var floor = this.initLayout();
+        for (var y = 0; y < this.height; y++) {
+            for (var x = 0; x < this.width; x++) {
+                if (this.layout[y][x] !== 0) {
+                    floor[y][x] = new Room(new THREE.Vector2(x, y), this.offsets);
+                }
+            }
+        }
+        return floor;
     };
 
     FloorGenerator.prototype.makeRoom = function (x, y) {
@@ -600,27 +742,8 @@ var FloorGenerator = (function () {
     };
     return FloorGenerator;
 })();
-var Room = (function () {
-    function Room() {
-        this.layout = [
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 1],
-            [1, 3, 3, 0, 1, 0, 0, 0, 0, 0, 1, 2, 2, 0, 1],
-            [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
-            [1, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
-            [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 2, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        ];
-    }
-    Room.prototype.getLayout = function () {
-        return this.layout;
-    };
-    return Room;
-})();
 var Floor = (function () {
-    function Floor() {
+    function Floor(offsets) {
         this.rooms = [];
         this.rooms.length = 6;
         for (var i = 0; i < this.rooms.length; i++) {
@@ -628,23 +751,16 @@ var Floor = (function () {
             this.rooms[i].length = 9;
         }
         ;
-        this.layout = new FloorGenerator(6, 9, 10).generate();
-
-        this.buildRooms();
-        console.log(this);
+        this.layout = new FloorGenerator(9, 6, 10, offsets).generate().build();
     }
-    Floor.prototype.buildRooms = function () {
-        this.rooms[0][0] = new Room();
-        this.rooms[0][1] = new Room();
-    };
-
-    Floor.prototype.getRooms = function () {
-        return this.rooms;
+    Floor.prototype.getLayout = function () {
+        return this.layout;
     };
     return Floor;
 })();
 var World = (function () {
     function World(texture, tileSize, itemPool, collectablePool) {
+        this.roomOffsets = new THREE.Vector2(70, 40);
         this.tileSize = tileSize;
         this.texture = texture;
 
@@ -652,53 +768,43 @@ var World = (function () {
         this.items = [];
 
         this.depth = 0;
+        this.maxDepth = 1;
         this.mapPos = new THREE.Vector2(0, 0);
 
         this.floors = [];
-        this.floors[0] = new Floor();
-        this.map = this.floors[this.depth].getRooms()[this.mapPos.y][this.mapPos.x].getLayout();
+        for (var d = 0; d < this.maxDepth; d++) {
+            this.floors[d] = new Floor(this.roomOffsets);
+        }
 
         this.meshes = [];
         this.obstacles = [];
 
-        for (var i = 0; i < this.map.length; i++) {
-            this.meshes[i] = [];
+        for (var y = 0; y < this.floors[this.depth].getLayout().length; y++) {
+            this.meshes[y] = [];
+            this.obstacles[y] = [];
+            this.meshes[y].length = this.floors[this.depth].getLayout()[0].length;
+            this.obstacles[y].length = this.floors[this.depth].getLayout()[0].length;
+            for (var x = 0; x < this.floors[this.depth].getLayout()[0].length; x++) {
+                this.meshes[y][x] = [];
+                this.obstacles[y][x] = [];
+            }
         }
 
-        this.generateMeshes();
+        console.log(this.meshes);
+
+        this.generateFloorMeshes();
     }
-    World.prototype.generateMeshes = function () {
+    World.prototype.generateFloorMeshes = function () {
         var geometry = new THREE.CubeGeometry(this.tileSize, this.tileSize, this.tileSize);
         var material = new THREE.MeshPhongMaterial();
         var darkMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
-        for (var y = 0; y < this.map.length; y++) {
-            for (var x = 0; x < this.map[0].length; x++) {
-                if (this.map[y][x] !== 1) {
-                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, -3);
-                    this.meshes[y][x] = new THREE.Mesh(geometry, material);
-                    this.meshes[y][x].position = pos;
-                    this.meshes[y][x].castShadow = false;
-                    this.meshes[y][x].receiveShadow = true;
-                } else {
-                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
-                    this.meshes[y][x] = new THREE.Mesh(geometry, darkMaterial);
-                    this.meshes[y][x].position = pos;
-                    this.meshes[y][x].castShadow = true;
-                    this.meshes[y][x].receiveShadow = true;
-                    this.obstacles.push(this.meshes[y][x]);
-                }
+        var currentLayout = this.floors[this.depth].getLayout();
 
-                if (this.map[y][x] === 3) {
-                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
-                    var item = this.itemFactory.itemPoolRandom();
-                    item.setPosition(pos);
-                    this.items.push(item);
-                }
-                if (this.map[y][x] === 2) {
-                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
-                    var item = this.itemFactory.collectablePoolRandom();
-                    item.setPosition(pos);
-                    this.items.push(item);
+        for (var y = 0; y < currentLayout.length; y++) {
+            for (var x = 0; x < currentLayout[0].length; x++) {
+                if (typeof currentLayout[y][x] === 'object') {
+                    this.meshes[y][x] = currentLayout[y][x].getMesh();
+                    this.obstacles[y][x].push(currentLayout[y][x].getObstacles());
                 }
             }
         }
@@ -768,6 +874,8 @@ var UI = (function () {
         debugBuilder.addLine('x: ' + player.getPosition().x + ' y: ' + player.getPosition().y);
         debugBuilder.addLine('hp: ' + player.getHp() + '/' + player.getMaxHp());
         debugBuilder.addLine('armour: ' + player.getArmour());
+        debugBuilder.addLine('bombs: ' + player.getBombs());
+        debugBuilder.addLine('keys: ' + player.getKeys());
         debugBuilder.addLine('speed: ' + player.getSpeed());
         debugBuilder.addLine('shotDelay: ' + player.getShotDelay());
         debugBuilder.addLine('shotSpeed: ' + player.getShotSpeed());
@@ -819,12 +927,6 @@ var Game = (function () {
         this.ui = new UI();
 
         this.renderer.scene.add(this.player.getModel());
-
-        for (var y = 0; y < this.world.map.length; y++) {
-            for (var x = 0; x < this.world.map[0].length; x++) {
-                this.renderer.scene.add(this.world.getModel(x, y));
-            }
-        }
 
         this.roomItems = this.world.getRoomItems();
         var _this = this;
@@ -883,6 +985,25 @@ var Game = (function () {
         }
         if (this.input.isPressed('87')) {
             this.player.move(obstacles, 0, this.player.speed);
+        }
+
+        if (this.input.isPressed('74')) {
+            this.renderer.camera.position.x -= 1;
+        }
+        if (this.input.isPressed('75')) {
+            this.renderer.camera.position.y -= 1;
+        }
+        if (this.input.isPressed('76')) {
+            this.renderer.camera.position.x += 1;
+        }
+        if (this.input.isPressed('73')) {
+            this.renderer.camera.position.y += 1;
+        }
+        if (this.input.isPressed('85')) {
+            this.renderer.camera.position.z += 1;
+        }
+        if (this.input.isPressed('79')) {
+            this.renderer.camera.position.z -= 1;
         }
 
         if (this.input.isPressed('37') && !this.player.hasFired()) {
