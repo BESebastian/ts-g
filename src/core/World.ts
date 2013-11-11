@@ -14,6 +14,7 @@ class World {
     private maxDepth:       number;
     private mapPos:         THREE.Vector2;
     private roomOffsets:    THREE.Vector2;
+    private currentRoom:    Room;
 
     constructor(texture, tileSize, itemPool, collectablePool) {
         this.roomOffsets = new THREE.Vector2(70, 40);
@@ -24,47 +25,34 @@ class World {
         this.items = [];
 
         this.depth = 0;
-        this.maxDepth = 1;
-        this.mapPos = new THREE.Vector2(0, 0);
+        this.maxDepth = 5;
 
         this.floors = [];
         for (var d = 0; d < this.maxDepth; d++) {
-            this.floors[d] = new Floor(this.roomOffsets);
+            this.floors[d] = new Floor(this.itemFactory);
         }
+
+        this.mapPos = this.getSpawnRoom();
 
         this.meshes = [];
         this.obstacles = [];
 
-        for (var y = 0; y < this.floors[this.depth].getLayout().length; y++) {
-            this.meshes[y] = [];
-            this.obstacles[y] = [];
-            this.meshes[y].length = this.floors[this.depth].getLayout()[0].length;
-            this.obstacles[y].length = this.floors[this.depth].getLayout()[0].length;
-            for (var x = 0; x < this.floors[this.depth].getLayout()[0].length; x++) {
-                this.meshes[y][x] = [];
-                this.obstacles[y][x] = [];
-            }
-        }
-
-        console.log(this.meshes);
-
-        this.generateFloorMeshes();
+        this.generateRoomMeshes(this.floors[this.depth], this.mapPos.x, this.mapPos.y);
     }
 
-    private generateFloorMeshes() {
-        var geometry = new THREE.CubeGeometry(this.tileSize, this.tileSize, this.tileSize);
-        var material = new THREE.MeshPhongMaterial();
-        var darkMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
-        var currentLayout = this.floors[this.depth].getLayout();
+    private getSpawnRoom():THREE.Vector2 {
+        return this.floors[this.depth].getSpawn();
+    }
 
-        for (var y = 0; y < currentLayout.length; y++) {
-            for (var x = 0; x < currentLayout[0].length; x++) {
-                if (typeof currentLayout[y][x] === 'object') {
-                    this.meshes[y][x] = currentLayout[y][x].getMesh();
-                    this.obstacles[y][x].push(currentLayout[y][x].getObstacles());
-                }
-            }
-        }
+    private generateRoomMeshes(floor: Floor, x: number, y: number) {
+        var room = floor.getRoom(x, y);
+        this.meshes = room.getMeshes();
+        this.obstacles = room.getObstacles();
+        this.items = room.getItems();
+    }
+
+    public getCurrentRoom() {
+        return this.currentRoom;
     }
 
     public getObstacles() {

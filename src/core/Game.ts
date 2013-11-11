@@ -52,6 +52,14 @@ class Game {
 
         this.renderer.scene.add(this.player.getModel());
 
+        for (var y = 0; y < this.world.meshes.length; y++) {
+            for (var x = 0; x < this.world.meshes[0].length; x++) {
+                this.renderer.scene.add(this.world.meshes[y][x]);
+            }
+        }
+
+        var currentRoom = this.world.getCurrentRoom();
+
         this.roomItems = this.world.getRoomItems();
         var _this = this;
         this.roomItems.forEach(function (item) {

@@ -232,6 +232,21 @@ var ItemPools = (function () {
                 hp: 1
             },
             {
+                name: 'Lunch',
+                maxHp: 1,
+                hp: 1
+            },
+            {
+                name: 'Lunch',
+                maxHp: 1,
+                hp: 1
+            },
+            {
+                name: 'Lunch',
+                maxHp: 1,
+                hp: 1
+            },
+            {
                 name: 'Lard',
                 maxHp: 2,
                 hp: 2,
@@ -548,19 +563,21 @@ var Projectile = (function (_super) {
     return Projectile;
 })(Thing);
 var Room = (function () {
-    function Room(position, offset) {
-        this.explored = false;
+    function Room(position, itemFactory) {
+        this.completed = false;
+        this.seen = false;
         this.obstacles = [];
         this.meshes = [];
         this.items = [];
+        this.itemFactory = itemFactory;
 
         this.tileSize = 5;
         this.layout = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 1],
-            [1, 3, 3, 0, 1, 0, 0, 0, 0, 0, 1, 2, 2, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 1],
+            [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 2, 2, 0, 1],
             [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
-            [1, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
             [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 2, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -568,12 +585,8 @@ var Room = (function () {
         ];
 
         for (var y = 0; y < this.layout.length; y++) {
-            this.obstacles[y] = [];
-            this.obstacles[y].length = this.layout[0].length;
             this.meshes[y] = [];
             this.meshes[y].length = this.layout[0].length;
-            this.items[y] = [];
-            this.items[y].length = this.layout[0].length;
         }
 
         this.generateMeshes();
@@ -582,8 +595,12 @@ var Room = (function () {
         return this.layout;
     };
 
-    Room.prototype.getExplored = function () {
-        return this.explored;
+    Room.prototype.getCompleted = function () {
+        return this.completed;
+    };
+
+    Room.prototype.getSeen = function () {
+        return this.seen;
     };
 
     Room.prototype.enterRoom = function () {
@@ -591,12 +608,8 @@ var Room = (function () {
     };
 
     Room.prototype.completeRoom = function () {
-        this.explored = true;
+        this.completed = true;
         return this;
-    };
-
-    Room.prototype.getMesh = function () {
-        return this.meshes;
     };
 
     Room.prototype.generateMeshes = function () {
@@ -619,23 +632,44 @@ var Room = (function () {
                     this.meshes[y][x].receiveShadow = true;
                     this.obstacles.push(this.meshes[y][x]);
                 }
+
+                if (this.layout[y][x] === 3) {
+                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
+                    var item = this.itemFactory.itemPoolRandom();
+                    item.setPosition(pos);
+                    this.items.push(item);
+                }
+                if (this.layout[y][x] === 2) {
+                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
+                    var item = this.itemFactory.collectablePoolRandom();
+                    item.setPosition(pos);
+                    this.items.push(item);
+                }
             }
         }
+    };
+
+    Room.prototype.getItems = function () {
+        return this.items;
     };
 
     Room.prototype.getObstacles = function () {
         return this.obstacles;
     };
+
+    Room.prototype.getMeshes = function () {
+        return this.meshes;
+    };
     return Room;
 })();
 var FloorGenerator = (function () {
-    function FloorGenerator(w, h, max, offsets) {
+    function FloorGenerator(w, h, max, itemFactory) {
         this.width = w;
         this.height = h;
         this.maxRooms = max;
         this.rooms = [];
         this.layout = this.initLayout();
-        this.offsets = offsets;
+        this.itemFactory = itemFactory;
 
         var spawnLocation = this.shuffleArray([
             [2, 4],
@@ -651,6 +685,10 @@ var FloorGenerator = (function () {
             y: spawnLocation[0]
         };
     }
+    FloorGenerator.prototype.getSpawn = function () {
+        return new THREE.Vector2(this.spawn.x, this.spawn.y);
+    };
+
     FloorGenerator.prototype.generate = function () {
         this.layout[this.spawn.y][this.spawn.x] = 1;
         this.rooms.push([this.spawn.x, this.spawn.y]);
@@ -664,7 +702,7 @@ var FloorGenerator = (function () {
         for (var y = 0; y < this.height; y++) {
             for (var x = 0; x < this.width; x++) {
                 if (this.layout[y][x] !== 0) {
-                    floor[y][x] = new Room(new THREE.Vector2(x, y), this.offsets);
+                    floor[y][x] = new Room(new THREE.Vector2(x, y), this.itemFactory);
                 }
             }
         }
@@ -743,16 +781,19 @@ var FloorGenerator = (function () {
     return FloorGenerator;
 })();
 var Floor = (function () {
-    function Floor(offsets) {
-        this.rooms = [];
-        this.rooms.length = 6;
-        for (var i = 0; i < this.rooms.length; i++) {
-            this.rooms[i] = [];
-            this.rooms[i].length = 9;
-        }
-        ;
-        this.layout = new FloorGenerator(9, 6, 10, offsets).generate().build();
+    function Floor(itemFactory) {
+        var fg = new FloorGenerator(9, 6, 10, itemFactory);
+        this.layout = fg.generate().build();
+        this.spawn = fg.getSpawn();
     }
+    Floor.prototype.getSpawn = function () {
+        return this.spawn;
+    };
+
+    Floor.prototype.getRoom = function (x, y) {
+        return this.layout[y][x];
+    };
+
     Floor.prototype.getLayout = function () {
         return this.layout;
     };
@@ -768,46 +809,33 @@ var World = (function () {
         this.items = [];
 
         this.depth = 0;
-        this.maxDepth = 1;
-        this.mapPos = new THREE.Vector2(0, 0);
+        this.maxDepth = 5;
 
         this.floors = [];
         for (var d = 0; d < this.maxDepth; d++) {
-            this.floors[d] = new Floor(this.roomOffsets);
+            this.floors[d] = new Floor(this.itemFactory);
         }
+
+        this.mapPos = this.getSpawnRoom();
 
         this.meshes = [];
         this.obstacles = [];
 
-        for (var y = 0; y < this.floors[this.depth].getLayout().length; y++) {
-            this.meshes[y] = [];
-            this.obstacles[y] = [];
-            this.meshes[y].length = this.floors[this.depth].getLayout()[0].length;
-            this.obstacles[y].length = this.floors[this.depth].getLayout()[0].length;
-            for (var x = 0; x < this.floors[this.depth].getLayout()[0].length; x++) {
-                this.meshes[y][x] = [];
-                this.obstacles[y][x] = [];
-            }
-        }
-
-        console.log(this.meshes);
-
-        this.generateFloorMeshes();
+        this.generateRoomMeshes(this.floors[this.depth], this.mapPos.x, this.mapPos.y);
     }
-    World.prototype.generateFloorMeshes = function () {
-        var geometry = new THREE.CubeGeometry(this.tileSize, this.tileSize, this.tileSize);
-        var material = new THREE.MeshPhongMaterial();
-        var darkMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
-        var currentLayout = this.floors[this.depth].getLayout();
+    World.prototype.getSpawnRoom = function () {
+        return this.floors[this.depth].getSpawn();
+    };
 
-        for (var y = 0; y < currentLayout.length; y++) {
-            for (var x = 0; x < currentLayout[0].length; x++) {
-                if (typeof currentLayout[y][x] === 'object') {
-                    this.meshes[y][x] = currentLayout[y][x].getMesh();
-                    this.obstacles[y][x].push(currentLayout[y][x].getObstacles());
-                }
-            }
-        }
+    World.prototype.generateRoomMeshes = function (floor, x, y) {
+        var room = floor.getRoom(x, y);
+        this.meshes = room.getMeshes();
+        this.obstacles = room.getObstacles();
+        this.items = room.getItems();
+    };
+
+    World.prototype.getCurrentRoom = function () {
+        return this.currentRoom;
     };
 
     World.prototype.getObstacles = function () {
@@ -927,6 +955,14 @@ var Game = (function () {
         this.ui = new UI();
 
         this.renderer.scene.add(this.player.getModel());
+
+        for (var y = 0; y < this.world.meshes.length; y++) {
+            for (var x = 0; x < this.world.meshes[0].length; x++) {
+                this.renderer.scene.add(this.world.meshes[y][x]);
+            }
+        }
+
+        var currentRoom = this.world.getCurrentRoom();
 
         this.roomItems = this.world.getRoomItems();
         var _this = this;

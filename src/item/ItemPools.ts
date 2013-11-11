@@ -13,6 +13,21 @@ class ItemPools {
                 hp: 1
             },
             {
+                name: 'Lunch',
+                maxHp: 1,
+                hp: 1
+            },
+            {
+                name: 'Lunch',
+                maxHp: 1,
+                hp: 1
+            },
+            {
+                name: 'Lunch',
+                maxHp: 1,
+                hp: 1
+            },
+            {
                 name: 'Lard',
                 maxHp: 2,
                 hp: 2,

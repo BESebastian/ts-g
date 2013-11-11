@@ -2,21 +2,21 @@
 
 class FloorGenerator {
 
-    private width:      number;
-    private height:     number;
-    private maxRooms:   number;
-    private rooms:      any[];
-    private spawn:      any;
-    private layout:     any[];
-    private offsets:    THREE.Vector2;
+    private width:          number;
+    private height:         number;
+    private maxRooms:       number;
+    private rooms:          any[];
+    private spawn:          any;
+    private layout:         any[];
+    private itemFactory:    ItemFactory;
 
-    constructor(w: number, h: number, max: number, offsets: THREE.Vector2) {
+    constructor(w: number, h: number, max: number, itemFactory) {
         this.width = w;
         this.height = h;
         this.maxRooms = max;
         this.rooms = [];
         this.layout = this.initLayout();
-        this.offsets = offsets;
+        this.itemFactory = itemFactory;
 
         var spawnLocation = this.shuffleArray([
             [2, 4],
@@ -33,6 +33,10 @@ class FloorGenerator {
         };
     }
 
+    public getSpawn():THREE.Vector2 {
+        return new THREE.Vector2(this.spawn.x, this.spawn.y);
+    }
+
     public generate():FloorGenerator {
         this.layout[this.spawn.y][this.spawn.x] = 1;
         this.rooms.push([this.spawn.x, this.spawn.y]);
@@ -46,7 +50,7 @@ class FloorGenerator {
         for (var y = 0; y < this.height; y++) {
             for (var x = 0; x < this.width; x++) {
                 if (this.layout[y][x] !== 0) {
-                    floor[y][x] = new Room(new THREE.Vector2(x, y), this.offsets);
+                    floor[y][x] = new Room(new THREE.Vector2(x, y), this.itemFactory);
                 }
             }
         }

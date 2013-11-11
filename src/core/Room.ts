@@ -3,25 +3,28 @@ class Room {
     private obstacles;
     private meshes;
     private items;
-    private layout:     any[][];
-    private explored:   boolean;
-    private position:   THREE.Vector2;
-    private offset:     THREE.Vector2;
-    private tileSize:   number;
+    private layout:         any[][];
+    private seen:           boolean;
+    private completed:      boolean;
+    private position:       THREE.Vector2;
+    private tileSize:       number;
+    private itemFactory:    ItemFactory;
 
-    constructor(position: THREE.Vector2, offset: THREE.Vector2) {
-        this.explored = false;
+    constructor(position: THREE.Vector2, itemFactory) {
+        this.completed = false;
+        this.seen = false;
         this.obstacles = [];
         this.meshes = [];
         this.items = [];
+        this.itemFactory = itemFactory;
 
         this.tileSize = 5;
         this.layout = [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 1],
-            [1, 3, 3, 0, 1, 0, 0, 0, 0, 0, 1, 2, 2, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 1],
+            [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 2, 2, 0, 1],
             [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
-            [1, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
             [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 2, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
@@ -29,12 +32,8 @@ class Room {
         ];
 
         for (var y = 0; y < this.layout.length; y++) {
-            this.obstacles[y] = [];
-            this.obstacles[y].length = this.layout[0].length
             this.meshes[y] = [];
             this.meshes[y].length = this.layout[0].length;
-            this.items[y] = [];
-            this.items[y].length = this.layout[0].length;
         }
 
         this.generateMeshes();
@@ -44,8 +43,12 @@ class Room {
         return this.layout;
     }
 
-    public getExplored():boolean {
-        return this.explored;
+    public getCompleted():boolean {
+        return this.completed;
+    }
+
+    public getSeen():boolean {
+        return this.seen;
     }
 
     public enterRoom():Room {
@@ -53,15 +56,11 @@ class Room {
     }
 
     public completeRoom():Room {
-        this.explored = true;
+        this.completed = true;
         return this;
     }
 
-    public getMesh() {
-        return this.meshes;
-    }
-
-    public generateMeshes() {
+    private generateMeshes() {
         var geometry = new THREE.CubeGeometry(this.tileSize, this.tileSize, this.tileSize);
         var material = new THREE.MeshPhongMaterial();
         var darkMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
@@ -82,12 +81,34 @@ class Room {
                     this.meshes[y][x].receiveShadow = true;
                     this.obstacles.push(this.meshes[y][x]);
                 }
+
+                 // Item guff
+                 if (this.layout[y][x] === 3) {
+                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
+                     var item = this.itemFactory.itemPoolRandom();
+                     item.setPosition(pos);
+                     this.items.push(item);
+                 }
+                 if (this.layout[y][x] === 2) {
+                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
+                     var item = this.itemFactory.collectablePoolRandom();
+                     item.setPosition(pos);
+                     this.items.push(item);
+                }
             }
         }
     }
 
+    public getItems() {
+        return this.items;
+    }
+
     public getObstacles() {
         return this.obstacles;
+    }
+
+    public getMeshes() {
+        return this.meshes;
     }
 
 }

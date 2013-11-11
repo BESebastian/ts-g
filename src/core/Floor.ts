@@ -3,20 +3,22 @@
 
 class Floor {
 
-    private rooms;
     private layout;
     private offsets:    THREE.Vector2;
+    private spawn:      THREE.Vector2;
 
-    constructor(offsets: THREE.Vector2) {
-        this.rooms = [];
-        this.rooms.length = 6;
-        for (var i = 0; i < this.rooms.length; i++) {
-            this.rooms[i] = [];
-            this.rooms[i].length = 9;
-        };
-        this.layout = new FloorGenerator(9, 6, 10, offsets)
-            .generate()
-            .build();
+    constructor(itemFactory) {
+        var fg = new FloorGenerator(9, 6, 10, itemFactory);
+        this.layout = fg.generate().build();
+        this.spawn = fg.getSpawn();
+    }
+
+    public getSpawn():THREE.Vector2 {
+        return this.spawn;
+    }
+
+    public getRoom(x, y):Room {
+        return this.layout[y][x];
     }
 
     public getLayout() {
