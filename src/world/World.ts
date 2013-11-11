@@ -25,7 +25,7 @@ class World {
         this.items = [];
 
         this.depth = 0;
-        this.maxDepth = 5;
+        this.maxDepth = 1;
 
         this.floors = [];
         for (var d = 0; d < this.maxDepth; d++) {
@@ -53,6 +53,10 @@ class World {
 
     public getCurrentRoom() {
         return this.currentRoom;
+    }
+
+    public getCurrentFloor() {
+        return this.floors[this.depth];
     }
 
     public getObstacles() {

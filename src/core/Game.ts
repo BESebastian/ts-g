@@ -5,7 +5,7 @@
 ///<reference path='../item/ItemPools.ts' />
 ///<reference path='../creature/CreatureFactory.ts' />
 ///<reference path='../entities/Projectile.ts' />
-///<reference path='World.ts' />
+///<reference path='../world/World.ts' />
 ///<reference path='UI.ts' />
 
 class Game {
@@ -83,7 +83,7 @@ class Game {
     private update():void {
         var _this = this;
         this.player.update();
-        this.ui.update(this.player);
+        this.ui.update(this.player, this.world);
         this.entities.forEach(function (entity) {
             if (entity.checkCollision(_this.world.getObstacles())) {
                 _this.entities.splice(_this.entities.indexOf(entity), 1);

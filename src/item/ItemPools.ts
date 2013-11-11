@@ -18,16 +18,6 @@ class ItemPools {
                 hp: 1
             },
             {
-                name: 'Lunch',
-                maxHp: 1,
-                hp: 1
-            },
-            {
-                name: 'Lunch',
-                maxHp: 1,
-                hp: 1
-            },
-            {
                 name: 'Lard',
                 maxHp: 2,
                 hp: 2,
@@ -75,7 +65,7 @@ class ItemPools {
                 bombs: 1,
                 model: function() {
                     var geometry = new THREE.CubeGeometry(1, 1, 1);
-                    var material = new THREE.MeshPhongMaterial({ color: 0x0000FF });
+                    var material = new THREE.MeshPhongMaterial({ color: 0x999999 });
                     var model = new THREE.Mesh(geometry, material);
                     model.castShadow = true;
                     model.receiveShadow = true;
@@ -87,7 +77,7 @@ class ItemPools {
                 keys: 1,
                 model: function() {
                     var geometry = new THREE.CubeGeometry(1, 1, 1);
-                    var material = new THREE.MeshPhongMaterial({ color: 0x0000FF });
+                    var material = new THREE.MeshPhongMaterial({ color: 0xFFFFFF });
                     var model = new THREE.Mesh(geometry, material);
                     model.castShadow = true;
                     model.receiveShadow = true;

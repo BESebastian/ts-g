@@ -1,35 +1,54 @@
 class Room {
 
-    private obstacles;
-    private meshes;
-    private items;
+    private obstacles:      any[];
+    private meshes:         any[];
+    private items:          Item[];
     private layout:         any[][];
+    private exits:          any;
     private seen:           boolean;
     private completed:      boolean;
+    private isSpawn:        boolean;
+    private isItemRoom:     boolean;
+    private isShop:         boolean;
+    private isBossRoom:     boolean;
+    private locked:         boolean;
     private position:       THREE.Vector2;
     private tileSize:       number;
     private itemFactory:    ItemFactory;
 
-    constructor(position: THREE.Vector2, itemFactory) {
+    constructor(position: THREE.Vector2, itemFactory, layoutFactory, floorLayout) {
         this.completed = false;
         this.seen = false;
+        this.position = position;
+        this.layout = [];
         this.obstacles = [];
         this.meshes = [];
         this.items = [];
-        this.itemFactory = itemFactory;
 
+        if (this.getRoomCode(floorLayout) === 9) {
+            this.layout = layoutFactory.getSpawnRoom();
+            this.isSpawn = true;
+        } else if (this.getRoomCode(floorLayout) === 2) {
+            this.layout = layoutFactory.getShop();
+            this.isShop = true;
+        } else if (this.getRoomCode(floorLayout) === 3) {
+            this.layout = layoutFactory.getItemRoom();
+            this.isItemRoom = true;
+        } else if (this.getRoomCode(floorLayout) === 4) {
+            this.layout = layoutFactory.getBossRoom();
+            this.isBossRoom = true;
+        } else {
+            this.layout = layoutFactory.getRandomLayout();
+            this.isSpawn = false;
+            this.isShop = false;
+            this.isItemRoom = false;
+            this.isBossRoom = false;
+        }
+
+        this.itemFactory = itemFactory;
         this.tileSize = 5;
-        this.layout = [
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 1],
-            [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 2, 2, 0, 1],
-            [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
-            [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 2, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        ];
+        this.locked = (this.isShop || this.isItemRoom);
+        this.exits = this.getExits(floorLayout);
 
         for (var y = 0; y < this.layout.length; y++) {
             this.meshes[y] = [];
@@ -37,6 +56,14 @@ class Room {
         }
 
         this.generateMeshes();
+    }
+
+    public getRoomCode(floorLayout):number {
+        return floorLayout[this.position.y][this.position.x];
+    }
+
+    private getExits(floorLayout):Room {
+        return this;
     }
 
     public getLayout() {
@@ -83,13 +110,13 @@ class Room {
                 }
 
                  // Item guff
-                 if (this.layout[y][x] === 3) {
+                 if (this.layout[y][x] === 2) {
                      var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
                      var item = this.itemFactory.itemPoolRandom();
                      item.setPosition(pos);
                      this.items.push(item);
                  }
-                 if (this.layout[y][x] === 2) {
+                 if (this.layout[y][x] === 3) {
                      var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
                      var item = this.itemFactory.collectablePoolRandom();
                      item.setPosition(pos);
@@ -97,6 +124,10 @@ class Room {
                 }
             }
         }
+    }
+
+    public unlockRoom() {
+        this.locked = false;
     }
 
     public getItems() {
@@ -109,6 +140,42 @@ class Room {
 
     public getMeshes() {
         return this.meshes;
+    }
+
+    public setIsSpawn():Room {
+        this.isSpawn = true;
+        return this;
+    }
+
+    public getIsSpawn():boolean {
+        return this.isSpawn;
+    }
+
+    public setIsShop():Room {
+        this.isShop = true;
+        return this;
+    }
+
+    public getIsShop():boolean {
+        return this.isShop;
+    }
+
+    public setIsItemRoom():Room {
+        this.isItemRoom = true;
+        return this;
+    }
+
+    public getIsItemRoom():boolean {
+        return this.isItemRoom;
+    }
+
+    public getIsBossRoom():boolean {
+        return this.isBossRoom;
+    }
+
+    public setIsBossRoom():Room {
+        this.isBossRoom = true;
+        return this;
     }
 
 }

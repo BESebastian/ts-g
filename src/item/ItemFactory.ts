@@ -21,7 +21,8 @@ class ItemFactory {
             .setArmour(rand.armour || 0)
             .setMaxHp(rand.maxHp || 0)
             .setModel(rand.model);
-        this.itemPool.splice(r, 1);
+        // TODO: disable removing items from pool until it works :v
+        //this.itemPool.splice(r, 1);
         return item;
     }
 

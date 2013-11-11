@@ -20,9 +20,10 @@ class UI {
 
     public draw():void {}
 
-    public update(player: Player):void {
+    public update(player: Player, world: World):void {
         this.clear();
         this.messageLog();
+        this.miniMap(world);
         this.debug(player);
     }
 
@@ -34,6 +35,30 @@ class UI {
         for (var i = this.messages.length - 1; i >= 0; i--) {
             this.context.fillText(this.messages[i], this.canvas.width - 20, startY);
             startY -= 16;
+        }
+    }
+
+    private miniMap(world: World):void {
+        var floor = world.getCurrentFloor().getLayout();
+        var roomSizeWidth = 30;
+        var roomSizeHeight = 20;
+        var startX = this.canvas.width - 290;
+        var startY = 20;
+        for (var y = 0; y < floor.length; y++) {
+            for (var x = 0; x < floor[0].length; x++) {
+                if (floor[y][x] === 0) {
+                   this.context.fillStyle = '#000000';
+                } else if (floor[y][x].getIsSpawn()) {
+                    this.context.fillStyle = '#ff0000';
+                } else if (floor[y][x].getIsItemRoom()) {
+                    this.context.fillStyle = '#00ffff';
+                } else if (floor[y][x].getIsShop()) {
+                    this.context.fillStyle = '#777777';
+                } else {
+                    this.context.fillStyle = '#ffffff';
+                }
+                this.context.fillRect(startX + x * roomSizeWidth, startY + y * roomSizeHeight, roomSizeWidth, roomSizeHeight);
+            }
         }
     }
 

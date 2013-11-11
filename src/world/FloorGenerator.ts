@@ -1,4 +1,5 @@
 ///<reference path="Room.ts" />
+///<reference path="RoomLayoutBuilder.ts" />
 
 class FloorGenerator {
 
@@ -9,6 +10,7 @@ class FloorGenerator {
     private spawn:          any;
     private layout:         any[];
     private itemFactory:    ItemFactory;
+    private layoutBuilder:  RoomLayoutBuilder;
 
     constructor(w: number, h: number, max: number, itemFactory) {
         this.width = w;
@@ -17,6 +19,7 @@ class FloorGenerator {
         this.rooms = [];
         this.layout = this.initLayout();
         this.itemFactory = itemFactory;
+        this.layoutBuilder = new RoomLayoutBuilder();
 
         var spawnLocation = this.shuffleArray([
             [2, 4],
@@ -50,7 +53,7 @@ class FloorGenerator {
         for (var y = 0; y < this.height; y++) {
             for (var x = 0; x < this.width; x++) {
                 if (this.layout[y][x] !== 0) {
-                    floor[y][x] = new Room(new THREE.Vector2(x, y), this.itemFactory);
+                    floor[y][x] = new Room(new THREE.Vector2(x, y), this.itemFactory, this.layoutBuilder, this.layout);
                 }
             }
         }
