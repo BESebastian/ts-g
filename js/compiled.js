@@ -204,7 +204,7 @@ var ItemFactory = (function () {
         var r = Math.floor(Math.random() * this.itemPool.length);
         var rand = this.itemPool[r];
         var item = new Item(rand.name || 'undefined').setHp(rand.hp || 0).setSpeed(rand.speed || 0).setShotSpeed(rand.shotSpeed || 0).setShotDelay(rand.shotDelay || 0).setArmour(rand.armour || 0).setMaxHp(rand.maxHp || 0).setModel(rand.model);
-        this.itemPool.splice(r, 1);
+
         return item;
     };
 
@@ -228,16 +228,6 @@ var ItemPools = (function () {
             },
             {
                 name: 'Breakfast',
-                maxHp: 1,
-                hp: 1
-            },
-            {
-                name: 'Lunch',
-                maxHp: 1,
-                hp: 1
-            },
-            {
-                name: 'Lunch',
                 maxHp: 1,
                 hp: 1
             },
@@ -294,7 +284,7 @@ var ItemPools = (function () {
                 bombs: 1,
                 model: function () {
                     var geometry = new THREE.CubeGeometry(1, 1, 1);
-                    var material = new THREE.MeshPhongMaterial({ color: 0x0000FF });
+                    var material = new THREE.MeshPhongMaterial({ color: 0x999999 });
                     var model = new THREE.Mesh(geometry, material);
                     model.castShadow = true;
                     model.receiveShadow = true;
@@ -306,7 +296,7 @@ var ItemPools = (function () {
                 keys: 1,
                 model: function () {
                     var geometry = new THREE.CubeGeometry(1, 1, 1);
-                    var material = new THREE.MeshPhongMaterial({ color: 0x0000FF });
+                    var material = new THREE.MeshPhongMaterial({ color: 0xFFFFFF });
                     var model = new THREE.Mesh(geometry, material);
                     model.castShadow = true;
                     model.receiveShadow = true;
@@ -563,26 +553,39 @@ var Projectile = (function (_super) {
     return Projectile;
 })(Thing);
 var Room = (function () {
-    function Room(position, itemFactory) {
+    function Room(position, itemFactory, layoutFactory, floorLayout) {
         this.completed = false;
         this.seen = false;
+        this.position = position;
+        this.layout = [];
         this.obstacles = [];
         this.meshes = [];
         this.items = [];
-        this.itemFactory = itemFactory;
 
+        if (this.getRoomCode(floorLayout) === 9) {
+            this.layout = layoutFactory.getSpawnRoom();
+            this.isSpawn = true;
+        } else if (this.getRoomCode(floorLayout) === 2) {
+            this.layout = layoutFactory.getShop();
+            this.isShop = true;
+        } else if (this.getRoomCode(floorLayout) === 3) {
+            this.layout = layoutFactory.getItemRoom();
+            this.isItemRoom = true;
+        } else if (this.getRoomCode(floorLayout) === 4) {
+            this.layout = layoutFactory.getBossRoom();
+            this.isBossRoom = true;
+        } else {
+            this.layout = layoutFactory.getRandomLayout();
+            this.isSpawn = false;
+            this.isShop = false;
+            this.isItemRoom = false;
+            this.isBossRoom = false;
+        }
+
+        this.itemFactory = itemFactory;
         this.tileSize = 5;
-        this.layout = [
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 1],
-            [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 2, 2, 0, 1],
-            [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1],
-            [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 2, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        ];
+        this.locked = (this.isShop || this.isItemRoom);
+        this.exits = this.getExits(floorLayout);
 
         for (var y = 0; y < this.layout.length; y++) {
             this.meshes[y] = [];
@@ -591,6 +594,14 @@ var Room = (function () {
 
         this.generateMeshes();
     }
+    Room.prototype.getRoomCode = function (floorLayout) {
+        return floorLayout[this.position.y][this.position.x];
+    };
+
+    Room.prototype.getExits = function (floorLayout) {
+        return this;
+    };
+
     Room.prototype.getLayout = function () {
         return this.layout;
     };
@@ -633,13 +644,13 @@ var Room = (function () {
                     this.obstacles.push(this.meshes[y][x]);
                 }
 
-                if (this.layout[y][x] === 3) {
+                if (this.layout[y][x] === 2) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
                     var item = this.itemFactory.itemPoolRandom();
                     item.setPosition(pos);
                     this.items.push(item);
                 }
-                if (this.layout[y][x] === 2) {
+                if (this.layout[y][x] === 3) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
                     var item = this.itemFactory.collectablePoolRandom();
                     item.setPosition(pos);
@@ -647,6 +658,10 @@ var Room = (function () {
                 }
             }
         }
+    };
+
+    Room.prototype.unlockRoom = function () {
+        this.locked = false;
     };
 
     Room.prototype.getItems = function () {
@@ -660,7 +675,117 @@ var Room = (function () {
     Room.prototype.getMeshes = function () {
         return this.meshes;
     };
+
+    Room.prototype.setIsSpawn = function () {
+        this.isSpawn = true;
+        return this;
+    };
+
+    Room.prototype.getIsSpawn = function () {
+        return this.isSpawn;
+    };
+
+    Room.prototype.setIsShop = function () {
+        this.isShop = true;
+        return this;
+    };
+
+    Room.prototype.getIsShop = function () {
+        return this.isShop;
+    };
+
+    Room.prototype.setIsItemRoom = function () {
+        this.isItemRoom = true;
+        return this;
+    };
+
+    Room.prototype.getIsItemRoom = function () {
+        return this.isItemRoom;
+    };
+
+    Room.prototype.getIsBossRoom = function () {
+        return this.isBossRoom;
+    };
+
+    Room.prototype.setIsBossRoom = function () {
+        this.isBossRoom = true;
+        return this;
+    };
     return Room;
+})();
+var RoomLayoutBuilder = (function () {
+    function RoomLayoutBuilder() {
+    }
+    RoomLayoutBuilder.prototype.getSpawnRoom = function () {
+        return [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        ];
+    };
+
+    RoomLayoutBuilder.prototype.getBossRoom = function () {
+        return [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        ];
+    };
+
+    RoomLayoutBuilder.prototype.getItemRoom = function () {
+        return [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        ];
+    };
+
+    RoomLayoutBuilder.prototype.getShop = function () {
+        return [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 2, 3, 3, 3, 3, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        ];
+    };
+
+    RoomLayoutBuilder.prototype.getRandomLayout = function () {
+        return [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        ];
+    };
+    return RoomLayoutBuilder;
 })();
 var FloorGenerator = (function () {
     function FloorGenerator(w, h, max, itemFactory) {
@@ -670,6 +795,7 @@ var FloorGenerator = (function () {
         this.rooms = [];
         this.layout = this.initLayout();
         this.itemFactory = itemFactory;
+        this.layoutBuilder = new RoomLayoutBuilder();
 
         var spawnLocation = this.shuffleArray([
             [2, 4],
@@ -702,7 +828,7 @@ var FloorGenerator = (function () {
         for (var y = 0; y < this.height; y++) {
             for (var x = 0; x < this.width; x++) {
                 if (this.layout[y][x] !== 0) {
-                    floor[y][x] = new Room(new THREE.Vector2(x, y), this.itemFactory);
+                    floor[y][x] = new Room(new THREE.Vector2(x, y), this.itemFactory, this.layoutBuilder, this.layout);
                 }
             }
         }
@@ -809,7 +935,7 @@ var World = (function () {
         this.items = [];
 
         this.depth = 0;
-        this.maxDepth = 5;
+        this.maxDepth = 1;
 
         this.floors = [];
         for (var d = 0; d < this.maxDepth; d++) {
@@ -836,6 +962,10 @@ var World = (function () {
 
     World.prototype.getCurrentRoom = function () {
         return this.currentRoom;
+    };
+
+    World.prototype.getCurrentFloor = function () {
+        return this.floors[this.depth];
     };
 
     World.prototype.getObstacles = function () {
@@ -868,9 +998,10 @@ var UI = (function () {
     UI.prototype.draw = function () {
     };
 
-    UI.prototype.update = function (player) {
+    UI.prototype.update = function (player, world) {
         this.clear();
         this.messageLog();
+        this.miniMap(world);
         this.debug(player);
     };
 
@@ -882,6 +1013,30 @@ var UI = (function () {
         for (var i = this.messages.length - 1; i >= 0; i--) {
             this.context.fillText(this.messages[i], this.canvas.width - 20, startY);
             startY -= 16;
+        }
+    };
+
+    UI.prototype.miniMap = function (world) {
+        var floor = world.getCurrentFloor().getLayout();
+        var roomSizeWidth = 30;
+        var roomSizeHeight = 20;
+        var startX = this.canvas.width - 290;
+        var startY = 20;
+        for (var y = 0; y < floor.length; y++) {
+            for (var x = 0; x < floor[0].length; x++) {
+                if (floor[y][x] === 0) {
+                    this.context.fillStyle = '#000000';
+                } else if (floor[y][x].getIsSpawn()) {
+                    this.context.fillStyle = '#ff0000';
+                } else if (floor[y][x].getIsItemRoom()) {
+                    this.context.fillStyle = '#00ffff';
+                } else if (floor[y][x].getIsShop()) {
+                    this.context.fillStyle = '#777777';
+                } else {
+                    this.context.fillStyle = '#ffffff';
+                }
+                this.context.fillRect(startX + x * roomSizeWidth, startY + y * roomSizeHeight, roomSizeWidth, roomSizeHeight);
+            }
         }
     };
 
@@ -986,7 +1141,7 @@ var Game = (function () {
     Game.prototype.update = function () {
         var _this = this;
         this.player.update();
-        this.ui.update(this.player);
+        this.ui.update(this.player, this.world);
         this.entities.forEach(function (entity) {
             if (entity.checkCollision(_this.world.getObstacles())) {
                 _this.entities.splice(_this.entities.indexOf(entity), 1);
