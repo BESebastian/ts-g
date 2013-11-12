@@ -56,14 +56,33 @@ class Room {
         }
 
         this.generateMeshes();
+        console.log(this.exits);
     }
 
     public getRoomCode(floorLayout):number {
         return floorLayout[this.position.y][this.position.x];
     }
 
-    private getExits(floorLayout):Room {
-        return this;
+    private getExits(floorLayout) {
+        var directions = [
+            [this.position.x, this.position.y - 1],
+            [this.position.x, this.position.y + 1],
+            [this.position.x + 1, this.position.y],
+            [this.position.x - 1, this.position.y]
+        ];
+        var neighbours = [];
+        var _this = this;
+        directions.forEach(function (direction) {
+            if (!_this.isInvalid(direction[0], direction[1], floorLayout)) {
+                neighbours.push(direction);
+            }
+        });
+        return neighbours;
+    }
+
+    private isInvalid(x: number, y: number, floorLayout):boolean {
+        if (x < 0 || y < 0 || x >= floorLayout[0].length || y >= floorLayout.length) { return true; }
+        return (floorLayout[y][x] === 0);
     }
 
     public getLayout() {

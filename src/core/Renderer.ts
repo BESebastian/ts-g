@@ -34,7 +34,7 @@ class Renderer {
         this.renderer.shadowMapType = THREE.PCFSoftShadowMap;
 
         this.renderer.domElement.id = 'viewport';
-        this.camera.position.set(0, 0, 50);
+        this.camera.position.set(35, 27, 69);
 
         this.light = new THREE.SpotLight(0xffffff, 0.8);
         this.light.castShadow = true;

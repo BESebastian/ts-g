@@ -66,7 +66,6 @@ class Game {
             _this.renderer.scene.add(item.getModel());
         });
 
-        this.renderer.moveCamera(this.player.getPosition());
         this.loop();
     }
 

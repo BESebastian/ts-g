@@ -18,7 +18,7 @@ var Renderer = (function () {
         this.renderer.shadowMapType = THREE.PCFSoftShadowMap;
 
         this.renderer.domElement.id = 'viewport';
-        this.camera.position.set(0, 0, 50);
+        this.camera.position.set(35, 27, 69);
 
         this.light = new THREE.SpotLight(0xffffff, 0.8);
         this.light.castShadow = true;
@@ -593,13 +593,34 @@ var Room = (function () {
         }
 
         this.generateMeshes();
+        console.log(this.exits);
     }
     Room.prototype.getRoomCode = function (floorLayout) {
         return floorLayout[this.position.y][this.position.x];
     };
 
     Room.prototype.getExits = function (floorLayout) {
-        return this;
+        var directions = [
+            [this.position.x, this.position.y - 1],
+            [this.position.x, this.position.y + 1],
+            [this.position.x + 1, this.position.y],
+            [this.position.x - 1, this.position.y]
+        ];
+        var neighbours = [];
+        var _this = this;
+        directions.forEach(function (direction) {
+            if (!_this.isInvalid(direction[0], direction[1], floorLayout)) {
+                neighbours.push(direction);
+            }
+        });
+        return neighbours;
+    };
+
+    Room.prototype.isInvalid = function (x, y, floorLayout) {
+        if (x < 0 || y < 0 || x >= floorLayout[0].length || y >= floorLayout.length) {
+            return true;
+        }
+        return (floorLayout[y][x] === 0);
     };
 
     Room.prototype.getLayout = function () {
@@ -1125,7 +1146,6 @@ var Game = (function () {
             _this.renderer.scene.add(item.getModel());
         });
 
-        this.renderer.moveCamera(this.player.getPosition());
         this.loop();
     }
     Game.prototype.loop = function () {
