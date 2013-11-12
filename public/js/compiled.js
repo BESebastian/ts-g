@@ -335,7 +335,7 @@ var Creature = (function () {
         return false;
     };
 
-    Creature.prototype.move = function (obstacles, x, y) {
+    Creature.prototype.move = function (obstacles, x, y, world, renderer) {
         this.pos.x += x;
         this.pos.y += y;
     };
@@ -366,6 +366,7 @@ var Player = (function (_super) {
         var size = 4;
         var geometry = new THREE.CubeGeometry(size, size, size);
         var material = new THREE.MeshPhongMaterial({ color: 0x00FF00 });
+        this.changeCooldown = 0;
         this.model = new THREE.Mesh(geometry, material);
         this.pos = new THREE.Vector3(12.5, 12.5, 2);
         this.speed = 0.3;
@@ -401,10 +402,13 @@ var Player = (function (_super) {
         } else {
             this.fired = false;
         }
+        if (this.changeCooldown > 0) {
+            this.changeCooldown -= 1;
+        }
         this.model.position = this.pos;
     };
 
-    Player.prototype.move = function (obstacles, x, y) {
+    Player.prototype.move = function (obstacles, x, y, world, renderer) {
         var collisions = [];
         var _this = this;
         var velX = x;
@@ -417,12 +421,24 @@ var Player = (function (_super) {
                     if (collision.distance <= _this.distance) {
                         if (collision.faceIndex === 3 && y > 0) {
                             velY = 0;
+                            if (collision.object.position.x === 35) {
+                                _this.changeRoom('n', world, renderer);
+                            }
                         } else if (collision.faceIndex === 2 && y < 0) {
                             velY = 0;
+                            if (collision.object.position.x === 35) {
+                                _this.changeRoom('s', world, renderer);
+                            }
                         } else if (collision.faceIndex === 0 && x < 0) {
                             velX = 0;
+                            if (collision.object.position.y === 20) {
+                                _this.changeRoom('w', world, renderer);
+                            }
                         } else if (collision.faceIndex === 1 && x > 0) {
                             velX = 0;
+                            if (collision.object.position.y === 20) {
+                                _this.changeRoom('e', world, renderer);
+                            }
                         }
                     }
                 });
@@ -430,6 +446,46 @@ var Player = (function (_super) {
         }
         this.pos.x += velX;
         this.pos.y += velY;
+    };
+
+    Player.prototype.changeRoom = function (direction, world, renderer) {
+        var exits = world.getCurrentRoom().getExits();
+        var x = world.getPosition().x;
+        var y = world.getPosition().y;
+        switch (direction) {
+            case 'n':
+                if (x === exits[0][0] && y - 1 === exits[0][1]) {
+                    if (this.changeCooldown === 0) {
+                        world.changeRoom(x, y - 1, renderer);
+                    }
+                    this.changeCooldown = 1000;
+                }
+                break;
+            case 'e':
+                if (x + 1 === exits[2][0] && y === exits[2][1]) {
+                    if (this.changeCooldown === 0) {
+                        world.changeRoom(x + 1, y, renderer);
+                    }
+                    this.changeCooldown = 1000;
+                }
+                break;
+            case 's':
+                if (x === exits[1][0] && y + 1 === exits[1][1]) {
+                    if (this.changeCooldown === 0) {
+                        world.changeRoom(x, y + 1, renderer);
+                    }
+                    this.changeCooldown = 1000;
+                }
+                break;
+            case 'w':
+                if (x - 1 === exits[3][0] && y === exits[3][1]) {
+                    if (this.changeCooldown === 0) {
+                        world.changeRoom(x - 1, y, renderer);
+                    }
+                    this.changeCooldown = 1000;
+                }
+                break;
+        }
     };
 
     Player.prototype.hasFired = function () {
@@ -585,7 +641,7 @@ var Room = (function () {
         this.itemFactory = itemFactory;
         this.tileSize = 5;
         this.locked = (this.isShop || this.isItemRoom);
-        this.exits = this.getExits(floorLayout);
+        this.exits = this.findExits(floorLayout);
 
         for (var y = 0; y < this.layout.length; y++) {
             this.meshes[y] = [];
@@ -593,13 +649,12 @@ var Room = (function () {
         }
 
         this.generateMeshes();
-        console.log(this.exits);
     }
     Room.prototype.getRoomCode = function (floorLayout) {
         return floorLayout[this.position.y][this.position.x];
     };
 
-    Room.prototype.getExits = function (floorLayout) {
+    Room.prototype.findExits = function (floorLayout) {
         var directions = [
             [this.position.x, this.position.y - 1],
             [this.position.x, this.position.y + 1],
@@ -614,6 +669,10 @@ var Room = (function () {
             }
         });
         return neighbours;
+    };
+
+    Room.prototype.getExits = function () {
+        return this.exits;
     };
 
     Room.prototype.isInvalid = function (x, y, floorLayout) {
@@ -970,6 +1029,25 @@ var World = (function () {
 
         this.generateRoomMeshes(this.floors[this.depth], this.mapPos.x, this.mapPos.y);
     }
+    World.prototype.getPosition = function () {
+        return this.mapPos;
+    };
+
+    World.prototype.changeRoom = function (x, y, renderer) {
+        this.meshes.forEach(function (obstacle) {
+            renderer.scene.remove(obstacle);
+        });
+        this.mapPos = new THREE.Vector2(x, y);
+        this.meshes = [];
+        this.obstacles = [];
+        this.generateRoomMeshes(this.floors[this.depth], this.mapPos.x, this.mapPos.y);
+        for (var y = 0; y < this.meshes.length; y++) {
+            for (var x = 0; x < this.meshes[0].length; x++) {
+                renderer.scene.add(this.meshes[y][x]);
+            }
+        }
+    };
+
     World.prototype.getSpawnRoom = function () {
         return this.floors[this.depth].getSpawn();
     };
@@ -982,7 +1060,7 @@ var World = (function () {
     };
 
     World.prototype.getCurrentRoom = function () {
-        return this.currentRoom;
+        return this.floors[this.depth].getRoom(this.mapPos.x, this.mapPos.y);
     };
 
     World.prototype.getCurrentFloor = function () {
@@ -1055,6 +1133,9 @@ var UI = (function () {
                     this.context.fillStyle = '#777777';
                 } else {
                     this.context.fillStyle = '#ffffff';
+                }
+                if (world.getPosition().x === x && world.getPosition().y === y) {
+                    this.context.fillStyle = '#00ff00';
                 }
                 this.context.fillRect(startX + x * roomSizeWidth, startY + y * roomSizeHeight, roomSizeWidth, roomSizeHeight);
             }
@@ -1186,16 +1267,16 @@ var Game = (function () {
         var projectile = null;
         var obstacles = this.world.getObstacles();
         if (this.input.isPressed('65')) {
-            this.player.move(obstacles, -this.player.speed, 0);
+            this.player.move(obstacles, -this.player.speed, 0, this.world, this.renderer);
         }
         if (this.input.isPressed('68')) {
-            this.player.move(obstacles, this.player.speed, 0);
+            this.player.move(obstacles, this.player.speed, 0, this.world, this.renderer);
         }
         if (this.input.isPressed('83')) {
-            this.player.move(obstacles, 0, -this.player.speed);
+            this.player.move(obstacles, 0, -this.player.speed, this.world, this.renderer);
         }
         if (this.input.isPressed('87')) {
-            this.player.move(obstacles, 0, this.player.speed);
+            this.player.move(obstacles, 0, this.player.speed, this.world, this.renderer);
         }
 
         if (this.input.isPressed('74')) {

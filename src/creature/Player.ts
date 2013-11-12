@@ -12,12 +12,14 @@ class Player extends Creature implements Collider {
     public  rays:           any[];
     public  distance:       number;
     public  caster:         THREE.Raycaster;
+    private changeCooldown: number;
 
     constructor() {
         super();
         var size = 4;
         var geometry = new THREE.CubeGeometry(size, size, size);
         var material = new THREE.MeshPhongMaterial({ color: 0x00FF00 });
+        this.changeCooldown = 0;
         this.model = new THREE.Mesh(geometry, material);
         this.pos = new THREE.Vector3(12.5, 12.5, 2);
         this.speed = 0.3;
@@ -54,10 +56,13 @@ class Player extends Creature implements Collider {
         } else {
             this.fired = false;
         }
+        if (this.changeCooldown > 0) {
+            this.changeCooldown -= 1;
+        }
         this.model.position = this.pos;
     }
 
-    public move(obstacles, x: number, y: number):void {
+    public move(obstacles, x: number, y: number, world, renderer):void {
         var collisions = [];
         var _this = this;
         var velX = x;
@@ -70,12 +75,24 @@ class Player extends Creature implements Collider {
                     if (collision.distance <= _this.distance) {
                         if (collision.faceIndex === 3 && y > 0) {
                             velY = 0;
+                            if (collision.object.position.x === 35) {
+                                _this.changeRoom('n', world, renderer);
+                            }
                         } else if (collision.faceIndex === 2 && y < 0) {
-                            velY = 0;
+                            velY = 0
+                            if (collision.object.position.x === 35) {
+                                _this.changeRoom('s', world, renderer);
+                            }
                         } else if (collision.faceIndex === 0 && x < 0) {
                             velX = 0;
+                            if (collision.object.position.y === 20) {
+                                _this.changeRoom('w', world, renderer);
+                            }
                         } else if (collision.faceIndex === 1 && x > 0) {
                             velX = 0;
+                            if (collision.object.position.y === 20) {
+                                _this.changeRoom('e', world, renderer);
+                            }
                         }
                     }
                 });
@@ -83,6 +100,46 @@ class Player extends Creature implements Collider {
         }
         this.pos.x += velX;
         this.pos.y += velY;
+    }
+
+    private changeRoom(direction: string, world, renderer) {
+        var exits = world.getCurrentRoom().getExits();
+        var x = world.getPosition().x;
+        var y = world.getPosition().y;
+        switch (direction) {
+            case 'n':
+                if (x === exits[0][0] && y - 1 === exits[0][1]) {
+                    if (this.changeCooldown === 0) {
+                        world.changeRoom(x, y - 1, renderer);
+                    }
+                    this.changeCooldown = 1000;
+                }
+                break;
+            case 'e':
+                if (x + 1 === exits[2][0] && y === exits[2][1]) {
+                    if (this.changeCooldown === 0) {
+                        world.changeRoom(x + 1, y, renderer);
+                    }
+                    this.changeCooldown = 1000;
+                }
+                break;
+            case 's':
+                if (x === exits[1][0] && y + 1 === exits[1][1]) {
+                    if (this.changeCooldown === 0) {
+                        world.changeRoom(x, y + 1, renderer);
+                    }
+                    this.changeCooldown = 1000;
+                }
+                break;
+            case 'w':
+                if (x - 1 === exits[3][0] && y === exits[3][1]) {
+                    if (this.changeCooldown === 0) {
+                        world.changeRoom(x - 1, y, renderer);
+                    }
+                    this.changeCooldown = 1000;
+                }
+                break;
+        }
     }
 
     public hasFired():boolean {

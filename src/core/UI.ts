@@ -57,6 +57,9 @@ class UI {
                 } else {
                     this.context.fillStyle = '#ffffff';
                 }
+                if (world.getPosition().x === x && world.getPosition().y === y) {
+                    this.context.fillStyle = '#00ff00';
+                }
                 this.context.fillRect(startX + x * roomSizeWidth, startY + y * roomSizeHeight, roomSizeWidth, roomSizeHeight);
             }
         }

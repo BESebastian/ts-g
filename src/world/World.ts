@@ -40,6 +40,25 @@ class World {
         this.generateRoomMeshes(this.floors[this.depth], this.mapPos.x, this.mapPos.y);
     }
 
+    public getPosition():THREE.Vector2 {
+        return this.mapPos;
+    }
+
+    public changeRoom(x, y, renderer) {
+        this.meshes.forEach(function (obstacle) {
+            renderer.scene.remove(obstacle);
+        });
+        this.mapPos = new THREE.Vector2(x, y);
+        this.meshes = [];
+        this.obstacles = [];
+        this.generateRoomMeshes(this.floors[this.depth], this.mapPos.x, this.mapPos.y);
+        for (var y = 0; y < this.meshes.length; y++) {
+            for (var x = 0; x < this.meshes[0].length; x++) {
+                renderer.scene.add(this.meshes[y][x]);
+            }
+        }
+    }
+
     private getSpawnRoom():THREE.Vector2 {
         return this.floors[this.depth].getSpawn();
     }
@@ -52,7 +71,7 @@ class World {
     }
 
     public getCurrentRoom() {
-        return this.currentRoom;
+        return this.floors[this.depth].getRoom(this.mapPos.x, this.mapPos.y);
     }
 
     public getCurrentFloor() {

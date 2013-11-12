@@ -48,7 +48,7 @@ class Room {
         this.itemFactory = itemFactory;
         this.tileSize = 5;
         this.locked = (this.isShop || this.isItemRoom);
-        this.exits = this.getExits(floorLayout);
+        this.exits = this.findExits(floorLayout);
 
         for (var y = 0; y < this.layout.length; y++) {
             this.meshes[y] = [];
@@ -56,14 +56,13 @@ class Room {
         }
 
         this.generateMeshes();
-        console.log(this.exits);
     }
 
     public getRoomCode(floorLayout):number {
         return floorLayout[this.position.y][this.position.x];
     }
 
-    private getExits(floorLayout) {
+    public findExits(floorLayout) {
         var directions = [
             [this.position.x, this.position.y - 1],
             [this.position.x, this.position.y + 1],
@@ -78,6 +77,10 @@ class Room {
             }
         });
         return neighbours;
+    }
+
+    public getExits() {
+        return this.exits;
     }
 
     private isInvalid(x: number, y: number, floorLayout):boolean {
