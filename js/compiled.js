@@ -454,6 +454,7 @@ var Player = (function (_super) {
                     world.changeRoom(x, y - 1, renderer);
                     this.changeCooldown = 20;
                     this.pos.y = 5;
+                    this.pos.x = 35;
                 }
                 break;
             case 'e':
@@ -461,6 +462,7 @@ var Player = (function (_super) {
                     world.changeRoom(x + 1, y, renderer);
                     this.changeCooldown = 20;
                     this.pos.x = 5;
+                    this.pos.y = 20;
                 }
                 break;
             case 's':
@@ -468,6 +470,7 @@ var Player = (function (_super) {
                     world.changeRoom(x, y + 1, renderer);
                     this.changeCooldown = 20;
                     this.pos.y = 35;
+                    this.pos.x = 35;
                 }
                 break;
             case 'w':
@@ -475,6 +478,7 @@ var Player = (function (_super) {
                     world.changeRoom(x - 1, y, renderer);
                     this.changeCooldown = 20;
                     this.pos.x = 65;
+                    this.pos.y = 20;
                 }
                 break;
         }
