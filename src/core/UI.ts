@@ -47,18 +47,16 @@ class UI {
         for (var y = 0; y < floor.length; y++) {
             for (var x = 0; x < floor[0].length; x++) {
                 if (floor[y][x] === 0) {
-                   this.context.fillStyle = '#000000';
-                } else if (floor[y][x].getIsSpawn()) {
-                    this.context.fillStyle = '#ff0000';
-                } else if (floor[y][x].getIsItemRoom()) {
-                    this.context.fillStyle = '#00ffff';
-                } else if (floor[y][x].getIsShop()) {
-                    this.context.fillStyle = '#777777';
+                   this.context.fillStyle = '#000';
+                } else if (floor[y][x].getExplored()) {
+                    this.context.fillStyle = '#aaa';
+                } else if (floor[y][x].getSeen()) {
+                    this.context.fillStyle = '#333';
                 } else {
-                    this.context.fillStyle = '#ffffff';
+                    this.context.fillStyle = '#000';
                 }
                 if (world.getPosition().x === x && world.getPosition().y === y) {
-                    this.context.fillStyle = '#00ff00';
+                    this.context.fillStyle = '#fff';
                 }
                 this.context.fillRect(startX + x * roomSizeWidth, startY + y * roomSizeHeight, roomSizeWidth, roomSizeHeight);
             }

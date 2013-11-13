@@ -23,7 +23,7 @@ class Player extends Creature {
         this.changeCooldown = 0;
         this.model = new THREE.Mesh(geometry, material);
         this.pos = new THREE.Vector3(12.5, 12.5, 2);
-        this.speed = 0.3;
+        this.speed = 0.32;
         this.shotSpeed = 0.7;
         this.model.position = this.pos;
         this.model.castShadow = true;
@@ -49,7 +49,6 @@ class Player extends Creature {
 
     private eventListeners():void {
         document.addEventListener('changeRoom', function (e) {
-            console.log('player changeRoom event', e);
         });
     }
 
@@ -65,7 +64,7 @@ class Player extends Creature {
         this.model.position = this.pos;
     }
 
-    public move(obstacles, x: number, y: number, world, renderer, entities):void {
+    public move(obstacles, x: number, y: number, world, renderer, entities, roomItems):void {
         var collisions = [];
         var _this = this;
         var velX = x;
@@ -78,23 +77,23 @@ class Player extends Creature {
                     if (collision.distance <= _this.distance) {
                         if (collision.faceIndex === 3 && y > 0) {
                             velY = 0;
-                            if (collision.object.position.x === 35 && _this.changeCooldown === 0) {
-                                _this.changeRoom('n', world, renderer, entities);
+                            if (collision.object.position.x === 35 && collision.object.position.y === 41 && _this.changeCooldown === 0) {
+                                _this.changeRoom('n', world, renderer, entities, roomItems);
                             }
                         } else if (collision.faceIndex === 2 && y < 0) {
                             velY = 0
-                            if (collision.object.position.x === 35 && _this.changeCooldown === 0) {
-                                _this.changeRoom('s', world, renderer, entities);
+                            if (collision.object.position.x === 35 && collision.object.position.y === -1 && _this.changeCooldown === 0) {
+                                _this.changeRoom('s', world, renderer, entities, roomItems);
                             }
                         } else if (collision.faceIndex === 0 && x < 0) {
                             velX = 0;
-                            if (collision.object.position.y === 20 && _this.changeCooldown === 0) {
-                                _this.changeRoom('w', world, renderer, entities);
+                            if (collision.object.position.y === 20 && collision.object.position.x === -1 && _this.changeCooldown === 0) {
+                                _this.changeRoom('w', world, renderer, entities, roomItems);
                             }
                         } else if (collision.faceIndex === 1 && x > 0) {
                             velX = 0;
-                            if (collision.object.position.y === 20 && _this.changeCooldown === 0) {
-                                _this.changeRoom('e', world, renderer, entities);
+                            if (collision.object.position.y === 20 && collision.object.position.x === 71 && _this.changeCooldown === 0) {
+                                _this.changeRoom('e', world, renderer, entities, roomItems);
                             }
                         }
                     }
@@ -105,14 +104,14 @@ class Player extends Creature {
         this.pos.y += velY;
     }
 
-    private changeRoom(direction: string, world, renderer, entities) {
+    private changeRoom(direction: string, world, renderer, entities, roomItems) {
         var exits = world.getCurrentRoom().getExits();
         var x = world.getPosition().x;
         var y = world.getPosition().y;
         switch (direction) {
             case 'n':
                 if (x === exits[0][0] && y - 1 === exits[0][1]) {
-                    world.changeRoom(x, y - 1, renderer, entities);
+                    world.changeRoom(x, y - 1, renderer, entities, roomItems);
                     this.changeCooldown = 20;
                     this.pos.y = 5;
                     this.pos.x = 35;
@@ -120,7 +119,7 @@ class Player extends Creature {
                 break;
             case 'e':
                 if (x + 1 === exits[2][0] && y === exits[2][1]) {
-                    world.changeRoom(x + 1, y, renderer, entities);
+                    world.changeRoom(x + 1, y, renderer, entities, roomItems);
                     this.changeCooldown = 20;
                     this.pos.x = 5;
                     this.pos.y = 20;
@@ -128,7 +127,7 @@ class Player extends Creature {
                 break;
             case 's':
                 if (x === exits[1][0] && y + 1 === exits[1][1]) {
-                    world.changeRoom(x, y + 1, renderer, entities);
+                    world.changeRoom(x, y + 1, renderer, entities, roomItems);
                     this.changeCooldown = 20;
                     this.pos.y = 35;
                     this.pos.x = 35;
@@ -136,7 +135,7 @@ class Player extends Creature {
                 break;
             case 'w':
                 if (x - 1 === exits[3][0] && y === exits[3][1]) {
-                    world.changeRoom(x - 1, y, renderer, entities);
+                    world.changeRoom(x - 1, y, renderer, entities, roomItems);
                     this.changeCooldown = 20;
                     this.pos.x = 65;
                     this.pos.y = 20;

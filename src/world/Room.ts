@@ -6,6 +6,7 @@ class Room {
     private layout:         any[][];
     private exits:          any;
     private seen:           boolean;
+    private explored:       boolean;
     private completed:      boolean;
     private isSpawn:        boolean;
     private isItemRoom:     boolean;
@@ -19,6 +20,7 @@ class Room {
     constructor(position: THREE.Vector2, itemFactory, layoutFactory, floorLayout) {
         this.completed = false;
         this.seen = false;
+        this.explored = false;
         this.position = position;
         this.layout = [];
         this.obstacles = [];
@@ -101,6 +103,20 @@ class Room {
         return this.seen;
     }
 
+    public getExplored():boolean {
+        return this.explored;
+    }
+
+    public setExplored():Room {
+        this.explored = true;
+        return this;
+    }
+
+    public setSeen():Room {
+        this.seen = true;
+        return this;
+    }
+
     public enterRoom():Room {
         return this;
     }
@@ -110,10 +126,6 @@ class Room {
         return this;
     }
 
-            //[this.position.x, this.position.y - 1],
-            //[this.position.x, this.position.y + 1],
-            //[this.position.x + 1, this.position.y],
-            //[this.position.x - 1, this.position.y]
     private generateMeshes() {
         var geometry = new THREE.CubeGeometry(this.tileSize, this.tileSize, this.tileSize);
         var material = new THREE.MeshPhongMaterial();
@@ -131,17 +143,17 @@ class Room {
                 } else {
                     var pos = new THREE.Vector3();
                     if (x === 7 && y === 8 && this.exits[0] !== 0) {
-                        pos = new THREE.Vector3(x * this.tileSize, (y * this.tileSize) + 2, 1);
-                        this.meshes[y][x] = new THREE.Mesh(geometry, doorMaterial);
+                        pos = new THREE.Vector3(x * this.tileSize, (y * this.tileSize) + 1, 1);
+                        this.meshes[y][x] = new THREE.Mesh(new THREE.CubeGeometry(this.tileSize, this.tileSize - 2, this.tileSize), doorMaterial);
                     } else if (x === 7 && y === 0 && this.exits[1] !== 0) {
-                        pos = new THREE.Vector3(x * this.tileSize, (y * this.tileSize) - 2, 1);
-                        this.meshes[y][x] = new THREE.Mesh(geometry, doorMaterial);
+                        pos = new THREE.Vector3(x * this.tileSize, (y * this.tileSize) - 1, 1);
+                        this.meshes[y][x] = new THREE.Mesh(new THREE.CubeGeometry(this.tileSize, this.tileSize - 2, this.tileSize), doorMaterial);
                     } else if (x === 0 && y === 4 && this.exits[3] !== 0) {
-                        pos = new THREE.Vector3((x * this.tileSize) - 2, y * this.tileSize, 1);
-                        this.meshes[y][x] = new THREE.Mesh(geometry, doorMaterial);
+                        pos = new THREE.Vector3((x * this.tileSize) - 1, y * this.tileSize, 1);
+                        this.meshes[y][x] = new THREE.Mesh(new THREE.CubeGeometry(this.tileSize - 2, this.tileSize, this.tileSize), doorMaterial);
                     } else if (x === 14 && y === 4 && this.exits[2] !== 0) {
-                        pos = new THREE.Vector3((x * this.tileSize) + 2, y * this.tileSize, 1);
-                        this.meshes[y][x] = new THREE.Mesh(geometry, doorMaterial);
+                        pos = new THREE.Vector3((x * this.tileSize) + 1, y * this.tileSize, 1);
+                        this.meshes[y][x] = new THREE.Mesh(new THREE.CubeGeometry(this.tileSize - 2, this.tileSize, this.tileSize), doorMaterial);
                     } else {
                         pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1)
                         this.meshes[y][x] = new THREE.Mesh(geometry, darkMaterial);
@@ -162,6 +174,7 @@ class Room {
                  if (this.layout[y][x] === 3) {
                      var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
                      var item = this.itemFactory.collectablePoolRandom();
+                     item.getModel().position = pos;
                      item.setPosition(pos);
                      this.items.push(item);
                 }

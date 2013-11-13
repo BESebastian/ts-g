@@ -32,7 +32,7 @@ class Creature implements Drawable, Updatable {
         return false;
     }
 
-    public move(obstacles, x: number, y: number, world, renderer, entities):void {
+    public move(obstacles, x: number, y: number, world, renderer, entities, roomItems):void {
         this.pos.x += x;
         this.pos.y += y;
     }

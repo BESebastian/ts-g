@@ -1,5 +1,6 @@
 ///<reference path="Room.ts" />
 ///<reference path="RoomLayoutBuilder.ts" />
+///<reference path="../core/Utils.ts" />
 
 class FloorGenerator {
 
@@ -21,7 +22,7 @@ class FloorGenerator {
         this.itemFactory = itemFactory;
         this.layoutBuilder = new RoomLayoutBuilder();
 
-        var spawnLocation = this.shuffleArray([
+        var spawnLocation = new Utils().shuffleArray([
             [2, 4],
             [2, 5],
             [2, 6],
@@ -82,7 +83,7 @@ class FloorGenerator {
     }
 
     private getNeighbours(x: number, y: number):any[] {
-        var directions = this.shuffleArray([
+        var directions = new Utils().shuffleArray([
             [x, y - 1],
             [x, y + 1],
             [x + 1, y],
@@ -114,16 +115,6 @@ class FloorGenerator {
     private isInvalid(x: number, y: number):boolean {
         if (x < 0 || y < 0 || x >= this.width || y >= this.height) { return true; }
         return (this.layout[y][x] === 1);
-    }
-
-    private shuffleArray(array):any[] {
-        for (var i = array.length - 1; i > 0; i--) {
-            var j = Math.floor(Math.random() * (i + 1));
-            var temp = array[i];
-            array[i] = array[j];
-            array[j] = temp;
-        }
-        return array;
     }
 
 }
