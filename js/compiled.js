@@ -204,7 +204,7 @@ var ItemFactory = (function () {
         var r = Math.floor(Math.random() * this.itemPool.length);
         var rand = this.itemPool[r];
         var item = new Item(rand.name || 'undefined').setHp(rand.hp || 0).setSpeed(rand.speed || 0).setShotSpeed(rand.shotSpeed || 0).setShotDelay(rand.shotDelay || 0).setArmour(rand.armour || 0).setMaxHp(rand.maxHp || 0).setModel(rand.model);
-
+        this.itemPool.splice(r, 1);
         return item;
     };
 
@@ -335,7 +335,7 @@ var Creature = (function () {
         return false;
     };
 
-    Creature.prototype.move = function (obstacles, x, y, world, renderer, entities) {
+    Creature.prototype.move = function (obstacles, x, y, world, renderer, entities, roomItems) {
         this.pos.x += x;
         this.pos.y += y;
     };
@@ -370,7 +370,7 @@ var Player = (function (_super) {
         this.changeCooldown = 0;
         this.model = new THREE.Mesh(geometry, material);
         this.pos = new THREE.Vector3(12.5, 12.5, 2);
-        this.speed = 0.3;
+        this.speed = 0.32;
         this.shotSpeed = 0.7;
         this.model.position = this.pos;
         this.model.castShadow = true;
@@ -395,7 +395,6 @@ var Player = (function (_super) {
     }
     Player.prototype.eventListeners = function () {
         document.addEventListener('changeRoom', function (e) {
-            console.log('player changeRoom event', e);
         });
     };
 
@@ -411,7 +410,7 @@ var Player = (function (_super) {
         this.model.position = this.pos;
     };
 
-    Player.prototype.move = function (obstacles, x, y, world, renderer, entities) {
+    Player.prototype.move = function (obstacles, x, y, world, renderer, entities, roomItems) {
         var collisions = [];
         var _this = this;
         var velX = x;
@@ -424,23 +423,23 @@ var Player = (function (_super) {
                     if (collision.distance <= _this.distance) {
                         if (collision.faceIndex === 3 && y > 0) {
                             velY = 0;
-                            if (collision.object.position.x === 35 && _this.changeCooldown === 0) {
-                                _this.changeRoom('n', world, renderer, entities);
+                            if (collision.object.position.x === 35 && collision.object.position.y === 41 && _this.changeCooldown === 0) {
+                                _this.changeRoom('n', world, renderer, entities, roomItems);
                             }
                         } else if (collision.faceIndex === 2 && y < 0) {
                             velY = 0;
-                            if (collision.object.position.x === 35 && _this.changeCooldown === 0) {
-                                _this.changeRoom('s', world, renderer, entities);
+                            if (collision.object.position.x === 35 && collision.object.position.y === -1 && _this.changeCooldown === 0) {
+                                _this.changeRoom('s', world, renderer, entities, roomItems);
                             }
                         } else if (collision.faceIndex === 0 && x < 0) {
                             velX = 0;
-                            if (collision.object.position.y === 20 && _this.changeCooldown === 0) {
-                                _this.changeRoom('w', world, renderer, entities);
+                            if (collision.object.position.y === 20 && collision.object.position.x === -1 && _this.changeCooldown === 0) {
+                                _this.changeRoom('w', world, renderer, entities, roomItems);
                             }
                         } else if (collision.faceIndex === 1 && x > 0) {
                             velX = 0;
-                            if (collision.object.position.y === 20 && _this.changeCooldown === 0) {
-                                _this.changeRoom('e', world, renderer, entities);
+                            if (collision.object.position.y === 20 && collision.object.position.x === 71 && _this.changeCooldown === 0) {
+                                _this.changeRoom('e', world, renderer, entities, roomItems);
                             }
                         }
                     }
@@ -451,14 +450,14 @@ var Player = (function (_super) {
         this.pos.y += velY;
     };
 
-    Player.prototype.changeRoom = function (direction, world, renderer, entities) {
+    Player.prototype.changeRoom = function (direction, world, renderer, entities, roomItems) {
         var exits = world.getCurrentRoom().getExits();
         var x = world.getPosition().x;
         var y = world.getPosition().y;
         switch (direction) {
             case 'n':
                 if (x === exits[0][0] && y - 1 === exits[0][1]) {
-                    world.changeRoom(x, y - 1, renderer, entities);
+                    world.changeRoom(x, y - 1, renderer, entities, roomItems);
                     this.changeCooldown = 20;
                     this.pos.y = 5;
                     this.pos.x = 35;
@@ -466,7 +465,7 @@ var Player = (function (_super) {
                 break;
             case 'e':
                 if (x + 1 === exits[2][0] && y === exits[2][1]) {
-                    world.changeRoom(x + 1, y, renderer, entities);
+                    world.changeRoom(x + 1, y, renderer, entities, roomItems);
                     this.changeCooldown = 20;
                     this.pos.x = 5;
                     this.pos.y = 20;
@@ -474,7 +473,7 @@ var Player = (function (_super) {
                 break;
             case 's':
                 if (x === exits[1][0] && y + 1 === exits[1][1]) {
-                    world.changeRoom(x, y + 1, renderer, entities);
+                    world.changeRoom(x, y + 1, renderer, entities, roomItems);
                     this.changeCooldown = 20;
                     this.pos.y = 35;
                     this.pos.x = 35;
@@ -482,7 +481,7 @@ var Player = (function (_super) {
                 break;
             case 'w':
                 if (x - 1 === exits[3][0] && y === exits[3][1]) {
-                    world.changeRoom(x - 1, y, renderer, entities);
+                    world.changeRoom(x - 1, y, renderer, entities, roomItems);
                     this.changeCooldown = 20;
                     this.pos.x = 65;
                     this.pos.y = 20;
@@ -619,6 +618,7 @@ var Room = (function () {
     function Room(position, itemFactory, layoutFactory, floorLayout) {
         this.completed = false;
         this.seen = false;
+        this.explored = false;
         this.position = position;
         this.layout = [];
         this.obstacles = [];
@@ -703,6 +703,20 @@ var Room = (function () {
         return this.seen;
     };
 
+    Room.prototype.getExplored = function () {
+        return this.explored;
+    };
+
+    Room.prototype.setExplored = function () {
+        this.explored = true;
+        return this;
+    };
+
+    Room.prototype.setSeen = function () {
+        this.seen = true;
+        return this;
+    };
+
     Room.prototype.enterRoom = function () {
         return this;
     };
@@ -728,17 +742,17 @@ var Room = (function () {
                 } else {
                     var pos = new THREE.Vector3();
                     if (x === 7 && y === 8 && this.exits[0] !== 0) {
-                        pos = new THREE.Vector3(x * this.tileSize, (y * this.tileSize) + 2, 1);
-                        this.meshes[y][x] = new THREE.Mesh(geometry, doorMaterial);
+                        pos = new THREE.Vector3(x * this.tileSize, (y * this.tileSize) + 1, 1);
+                        this.meshes[y][x] = new THREE.Mesh(new THREE.CubeGeometry(this.tileSize, this.tileSize - 2, this.tileSize), doorMaterial);
                     } else if (x === 7 && y === 0 && this.exits[1] !== 0) {
-                        pos = new THREE.Vector3(x * this.tileSize, (y * this.tileSize) - 2, 1);
-                        this.meshes[y][x] = new THREE.Mesh(geometry, doorMaterial);
+                        pos = new THREE.Vector3(x * this.tileSize, (y * this.tileSize) - 1, 1);
+                        this.meshes[y][x] = new THREE.Mesh(new THREE.CubeGeometry(this.tileSize, this.tileSize - 2, this.tileSize), doorMaterial);
                     } else if (x === 0 && y === 4 && this.exits[3] !== 0) {
-                        pos = new THREE.Vector3((x * this.tileSize) - 2, y * this.tileSize, 1);
-                        this.meshes[y][x] = new THREE.Mesh(geometry, doorMaterial);
+                        pos = new THREE.Vector3((x * this.tileSize) - 1, y * this.tileSize, 1);
+                        this.meshes[y][x] = new THREE.Mesh(new THREE.CubeGeometry(this.tileSize - 2, this.tileSize, this.tileSize), doorMaterial);
                     } else if (x === 14 && y === 4 && this.exits[2] !== 0) {
-                        pos = new THREE.Vector3((x * this.tileSize) + 2, y * this.tileSize, 1);
-                        this.meshes[y][x] = new THREE.Mesh(geometry, doorMaterial);
+                        pos = new THREE.Vector3((x * this.tileSize) + 1, y * this.tileSize, 1);
+                        this.meshes[y][x] = new THREE.Mesh(new THREE.CubeGeometry(this.tileSize - 2, this.tileSize, this.tileSize), doorMaterial);
                     } else {
                         pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
                         this.meshes[y][x] = new THREE.Mesh(geometry, darkMaterial);
@@ -758,6 +772,7 @@ var Room = (function () {
                 if (this.layout[y][x] === 3) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
                     var item = this.itemFactory.collectablePoolRandom();
+                    item.getModel().position = pos;
                     item.setPosition(pos);
                     this.items.push(item);
                 }
@@ -817,6 +832,20 @@ var Room = (function () {
         return this;
     };
     return Room;
+})();
+var Utils = (function () {
+    function Utils() {
+    }
+    Utils.prototype.shuffleArray = function (array) {
+        for (var i = array.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var temp = array[i];
+            array[i] = array[j];
+            array[j] = temp;
+        }
+        return array;
+    };
+    return Utils;
 })();
 var RoomLayoutBuilder = (function () {
     function RoomLayoutBuilder() {
@@ -878,17 +907,53 @@ var RoomLayoutBuilder = (function () {
     };
 
     RoomLayoutBuilder.prototype.getRandomLayout = function () {
-        return [
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        var possible = [
+            [
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            ],
+            [
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+                [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+                [1, 0, 0, 0, 0, 0, 3, 0, 3, 0, 0, 0, 0, 0, 1],
+                [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+                [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            ],
+            [
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            ],
+            [
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 0, 1, 1, 3, 1, 1, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+            ]
         ];
+        return possible[Math.floor(Math.random() * possible.length)];
     };
     return RoomLayoutBuilder;
 })();
@@ -902,7 +967,7 @@ var FloorGenerator = (function () {
         this.itemFactory = itemFactory;
         this.layoutBuilder = new RoomLayoutBuilder();
 
-        var spawnLocation = this.shuffleArray([
+        var spawnLocation = new Utils().shuffleArray([
             [2, 4],
             [2, 5],
             [2, 6],
@@ -964,7 +1029,7 @@ var FloorGenerator = (function () {
     };
 
     FloorGenerator.prototype.getNeighbours = function (x, y) {
-        var directions = this.shuffleArray([
+        var directions = new Utils().shuffleArray([
             [x, y - 1],
             [x, y + 1],
             [x + 1, y],
@@ -998,16 +1063,6 @@ var FloorGenerator = (function () {
             return true;
         }
         return (this.layout[y][x] === 1);
-    };
-
-    FloorGenerator.prototype.shuffleArray = function (array) {
-        for (var i = array.length - 1; i > 0; i--) {
-            var j = Math.floor(Math.random() * (i + 1));
-            var temp = array[i];
-            array[i] = array[j];
-            array[j] = temp;
-        }
-        return array;
     };
     return FloorGenerator;
 })();
@@ -1053,6 +1108,8 @@ var World = (function () {
         this.obstacles = [];
 
         this.generateRoomMeshes(this.floors[this.depth], this.mapPos.x, this.mapPos.y);
+        this.setNeighboursSeen(this.getCurrentRoom());
+        this.getCurrentRoom().setSeen().setExplored();
         var event = document.createEvent('CustomEvent');
         event.initEvent('changeRoom', true, true);
         document.dispatchEvent(event);
@@ -1061,7 +1118,7 @@ var World = (function () {
         return this.mapPos;
     };
 
-    World.prototype.changeRoom = function (x, y, renderer, entities) {
+    World.prototype.changeRoom = function (x, y, renderer, entities, roomItems) {
         this.meshes.forEach(function (mesh) {
             mesh.forEach(function (submesh) {
                 renderer.scene.remove(submesh);
@@ -1074,12 +1131,30 @@ var World = (function () {
         this.mapPos = new THREE.Vector2(x, y);
         this.meshes = [];
         this.obstacles = [];
+        this.items = [];
         this.generateRoomMeshes(this.floors[this.depth], this.mapPos.x, this.mapPos.y);
+        this.getCurrentRoom().setExplored();
+        this.setNeighboursSeen(this.getCurrentRoom());
         for (var y = 0; y < this.meshes.length; y++) {
             for (var x = 0; x < this.meshes[0].length; x++) {
                 renderer.scene.add(this.meshes[y][x]);
             }
         }
+        this.items.forEach(function (item) {
+            renderer.scene.add(item.getModel());
+            roomItems.push(item);
+        });
+    };
+
+    World.prototype.setNeighboursSeen = function (room) {
+        var exits = room.getExits();
+        var _this = this;
+        exits.forEach(function (exit) {
+            if (exit === 0) {
+                return;
+            }
+            _this.floors[_this.depth].getRoom(exit[0], exit[1]).setSeen();
+        });
     };
 
     World.prototype.getSpawnRoom = function () {
@@ -1158,18 +1233,16 @@ var UI = (function () {
         for (var y = 0; y < floor.length; y++) {
             for (var x = 0; x < floor[0].length; x++) {
                 if (floor[y][x] === 0) {
-                    this.context.fillStyle = '#000000';
-                } else if (floor[y][x].getIsSpawn()) {
-                    this.context.fillStyle = '#ff0000';
-                } else if (floor[y][x].getIsItemRoom()) {
-                    this.context.fillStyle = '#00ffff';
-                } else if (floor[y][x].getIsShop()) {
-                    this.context.fillStyle = '#777777';
+                    this.context.fillStyle = '#000';
+                } else if (floor[y][x].getExplored()) {
+                    this.context.fillStyle = '#aaa';
+                } else if (floor[y][x].getSeen()) {
+                    this.context.fillStyle = '#333';
                 } else {
-                    this.context.fillStyle = '#ffffff';
+                    this.context.fillStyle = '#000';
                 }
                 if (world.getPosition().x === x && world.getPosition().y === y) {
-                    this.context.fillStyle = '#00ff00';
+                    this.context.fillStyle = '#fff';
                 }
                 this.context.fillRect(startX + x * roomSizeWidth, startY + y * roomSizeHeight, roomSizeWidth, roomSizeHeight);
             }
@@ -1267,7 +1340,6 @@ var Game = (function () {
     }
     Game.prototype.eventListeners = function () {
         document.addEventListener('changeRoom', function (e) {
-            console.log('game changeRoom event', e);
         });
     };
 
@@ -1309,16 +1381,16 @@ var Game = (function () {
         var projectile = null;
         var obstacles = this.world.getObstacles();
         if (this.input.isPressed('65')) {
-            this.player.move(obstacles, -this.player.speed, 0, this.world, this.renderer, this.entities);
+            this.player.move(obstacles, -this.player.speed, 0, this.world, this.renderer, this.entities, this.roomItems);
         }
         if (this.input.isPressed('68')) {
-            this.player.move(obstacles, this.player.speed, 0, this.world, this.renderer, this.entities);
+            this.player.move(obstacles, this.player.speed, 0, this.world, this.renderer, this.entities, this.roomItems);
         }
         if (this.input.isPressed('83')) {
-            this.player.move(obstacles, 0, -this.player.speed, this.world, this.renderer, this.entities);
+            this.player.move(obstacles, 0, -this.player.speed, this.world, this.renderer, this.entities, this.roomItems);
         }
         if (this.input.isPressed('87')) {
-            this.player.move(obstacles, 0, this.player.speed, this.world, this.renderer, this.entities);
+            this.player.move(obstacles, 0, this.player.speed, this.world, this.renderer, this.entities, this.roomItems);
         }
 
         if (this.input.isPressed('74')) {

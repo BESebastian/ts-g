@@ -14,7 +14,3 @@ p {
   margin: 0 auto;
   background: black;
 }
-
-#container canvas {
-    border: 4px solid grey;
-}
