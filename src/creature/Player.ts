@@ -58,7 +58,7 @@ class Player extends Creature {
         this.model.position = this.pos;
     }
 
-    public move(obstacles, x: number, y: number, world, renderer):void {
+    public move(obstacles, x: number, y: number, world, renderer, entities):void {
         var collisions = [];
         var _this = this;
         var velX = x;
@@ -72,22 +72,22 @@ class Player extends Creature {
                         if (collision.faceIndex === 3 && y > 0) {
                             velY = 0;
                             if (collision.object.position.x === 35 && _this.changeCooldown === 0) {
-                                _this.changeRoom('n', world, renderer);
+                                _this.changeRoom('n', world, renderer, entities);
                             }
                         } else if (collision.faceIndex === 2 && y < 0) {
                             velY = 0
                             if (collision.object.position.x === 35 && _this.changeCooldown === 0) {
-                                _this.changeRoom('s', world, renderer);
+                                _this.changeRoom('s', world, renderer, entities);
                             }
                         } else if (collision.faceIndex === 0 && x < 0) {
                             velX = 0;
                             if (collision.object.position.y === 20 && _this.changeCooldown === 0) {
-                                _this.changeRoom('w', world, renderer);
+                                _this.changeRoom('w', world, renderer, entities);
                             }
                         } else if (collision.faceIndex === 1 && x > 0) {
                             velX = 0;
                             if (collision.object.position.y === 20 && _this.changeCooldown === 0) {
-                                _this.changeRoom('e', world, renderer);
+                                _this.changeRoom('e', world, renderer, entities);
                             }
                         }
                     }
@@ -98,14 +98,14 @@ class Player extends Creature {
         this.pos.y += velY;
     }
 
-    private changeRoom(direction: string, world, renderer) {
+    private changeRoom(direction: string, world, renderer, entities) {
         var exits = world.getCurrentRoom().getExits();
         var x = world.getPosition().x;
         var y = world.getPosition().y;
         switch (direction) {
             case 'n':
                 if (x === exits[0][0] && y - 1 === exits[0][1]) {
-                    world.changeRoom(x, y - 1, renderer);
+                    world.changeRoom(x, y - 1, renderer, entities);
                     this.changeCooldown = 20;
                     this.pos.y = 5;
                     this.pos.x = 35;
@@ -113,7 +113,7 @@ class Player extends Creature {
                 break;
             case 'e':
                 if (x + 1 === exits[2][0] && y === exits[2][1]) {
-                    world.changeRoom(x + 1, y, renderer);
+                    world.changeRoom(x + 1, y, renderer, entities);
                     this.changeCooldown = 20;
                     this.pos.x = 5;
                     this.pos.y = 20;
@@ -121,7 +121,7 @@ class Player extends Creature {
                 break;
             case 's':
                 if (x === exits[1][0] && y + 1 === exits[1][1]) {
-                    world.changeRoom(x, y + 1, renderer);
+                    world.changeRoom(x, y + 1, renderer, entities);
                     this.changeCooldown = 20;
                     this.pos.y = 35;
                     this.pos.x = 35;
@@ -129,7 +129,7 @@ class Player extends Creature {
                 break;
             case 'w':
                 if (x - 1 === exits[3][0] && y === exits[3][1]) {
-                    world.changeRoom(x - 1, y, renderer);
+                    world.changeRoom(x - 1, y, renderer, entities);
                     this.changeCooldown = 20;
                     this.pos.x = 65;
                     this.pos.y = 20;

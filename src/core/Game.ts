@@ -107,16 +107,16 @@ class Game {
         var projectile = null;
         var obstacles = this.world.getObstacles();
         if (this.input.isPressed('65')) {
-            this.player.move(obstacles, -this.player.speed, 0, this.world, this.renderer);
+            this.player.move(obstacles, -this.player.speed, 0, this.world, this.renderer, this.entities);
         }
         if (this.input.isPressed('68')) {
-            this.player.move(obstacles, this.player.speed, 0, this.world, this.renderer);
+            this.player.move(obstacles, this.player.speed, 0, this.world, this.renderer, this.entities);
         }
         if (this.input.isPressed('83')) {
-            this.player.move(obstacles, 0, -this.player.speed, this.world, this.renderer);
+            this.player.move(obstacles, 0, -this.player.speed, this.world, this.renderer, this.entities);
         }
         if (this.input.isPressed('87')) {
-            this.player.move(obstacles, 0, this.player.speed, this.world, this.renderer);
+            this.player.move(obstacles, 0, this.player.speed, this.world, this.renderer, this.entities);
         }
 
         if (this.input.isPressed('74')) {
