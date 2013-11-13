@@ -38,6 +38,9 @@ class World {
         this.obstacles = [];
 
         this.generateRoomMeshes(this.floors[this.depth], this.mapPos.x, this.mapPos.y);
+        var event = document.createEvent('CustomEvent');
+        event.initEvent('changeRoom', true, true);
+        document.dispatchEvent(event);
     }
 
     public getPosition():THREE.Vector2 {

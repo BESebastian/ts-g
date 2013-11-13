@@ -28,6 +28,7 @@ class Game {
 
     constructor() {
         this.assets   = new AssetManager();
+        this.eventListeners();
 
         this.width = 13;
         this.height = 7;
@@ -67,6 +68,12 @@ class Game {
         });
 
         this.loop();
+    }
+
+    private eventListeners():void {
+        document.addEventListener('changeRoom', function (e) {
+            console.log('game changeRoom event', e);
+        });
     }
 
     private loop():void {

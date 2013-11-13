@@ -16,6 +16,7 @@ class Player extends Creature {
 
     constructor() {
         super();
+        this.eventListeners();
         var size = 4;
         var geometry = new THREE.CubeGeometry(size, size, size);
         var material = new THREE.MeshPhongMaterial({ color: 0x00FF00 });
@@ -44,6 +45,12 @@ class Player extends Creature {
             new THREE.Vector3(0, 1, 0),
             new THREE.Vector3(0, -1, 0)
         ];
+    }
+
+    private eventListeners():void {
+        document.addEventListener('changeRoom', function (e) {
+            console.log('player changeRoom event', e);
+        });
     }
 
     public update():void {
