@@ -44,12 +44,16 @@ class World {
         return this.mapPos;
     }
 
-    public changeRoom(x, y, renderer) {
+    public changeRoom(x, y, renderer, entities) {
         this.meshes.forEach(function (mesh) {
             mesh.forEach(function (submesh) {
                 renderer.scene.remove(submesh);
             });
         });
+        entities.forEach(function (mesh) {
+            renderer.scene.remove(mesh.getModel());
+        });
+        entities = [];
         this.mapPos = new THREE.Vector2(x, y);
         this.meshes = [];
         this.obstacles = [];

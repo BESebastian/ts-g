@@ -335,7 +335,7 @@ var Creature = (function () {
         return false;
     };
 
-    Creature.prototype.move = function (obstacles, x, y, world, renderer) {
+    Creature.prototype.move = function (obstacles, x, y, world, renderer, entities) {
         this.pos.x += x;
         this.pos.y += y;
     };
@@ -404,7 +404,7 @@ var Player = (function (_super) {
         this.model.position = this.pos;
     };
 
-    Player.prototype.move = function (obstacles, x, y, world, renderer) {
+    Player.prototype.move = function (obstacles, x, y, world, renderer, entities) {
         var collisions = [];
         var _this = this;
         var velX = x;
@@ -418,22 +418,22 @@ var Player = (function (_super) {
                         if (collision.faceIndex === 3 && y > 0) {
                             velY = 0;
                             if (collision.object.position.x === 35 && _this.changeCooldown === 0) {
-                                _this.changeRoom('n', world, renderer);
+                                _this.changeRoom('n', world, renderer, entities);
                             }
                         } else if (collision.faceIndex === 2 && y < 0) {
                             velY = 0;
                             if (collision.object.position.x === 35 && _this.changeCooldown === 0) {
-                                _this.changeRoom('s', world, renderer);
+                                _this.changeRoom('s', world, renderer, entities);
                             }
                         } else if (collision.faceIndex === 0 && x < 0) {
                             velX = 0;
                             if (collision.object.position.y === 20 && _this.changeCooldown === 0) {
-                                _this.changeRoom('w', world, renderer);
+                                _this.changeRoom('w', world, renderer, entities);
                             }
                         } else if (collision.faceIndex === 1 && x > 0) {
                             velX = 0;
                             if (collision.object.position.y === 20 && _this.changeCooldown === 0) {
-                                _this.changeRoom('e', world, renderer);
+                                _this.changeRoom('e', world, renderer, entities);
                             }
                         }
                     }
@@ -444,35 +444,35 @@ var Player = (function (_super) {
         this.pos.y += velY;
     };
 
-    Player.prototype.changeRoom = function (direction, world, renderer) {
+    Player.prototype.changeRoom = function (direction, world, renderer, entities) {
         var exits = world.getCurrentRoom().getExits();
         var x = world.getPosition().x;
         var y = world.getPosition().y;
         switch (direction) {
             case 'n':
                 if (x === exits[0][0] && y - 1 === exits[0][1]) {
-                    world.changeRoom(x, y - 1, renderer);
+                    world.changeRoom(x, y - 1, renderer, entities);
                     this.changeCooldown = 20;
                     this.pos.y = 5;
                 }
                 break;
             case 'e':
                 if (x + 1 === exits[2][0] && y === exits[2][1]) {
-                    world.changeRoom(x + 1, y, renderer);
+                    world.changeRoom(x + 1, y, renderer, entities);
                     this.changeCooldown = 20;
                     this.pos.x = 5;
                 }
                 break;
             case 's':
                 if (x === exits[1][0] && y + 1 === exits[1][1]) {
-                    world.changeRoom(x, y + 1, renderer);
+                    world.changeRoom(x, y + 1, renderer, entities);
                     this.changeCooldown = 20;
                     this.pos.y = 35;
                 }
                 break;
             case 'w':
                 if (x - 1 === exits[3][0] && y === exits[3][1]) {
-                    world.changeRoom(x - 1, y, renderer);
+                    world.changeRoom(x - 1, y, renderer, entities);
                     this.changeCooldown = 20;
                     this.pos.x = 65;
                 }
@@ -1047,12 +1047,16 @@ var World = (function () {
         return this.mapPos;
     };
 
-    World.prototype.changeRoom = function (x, y, renderer) {
+    World.prototype.changeRoom = function (x, y, renderer, entities) {
         this.meshes.forEach(function (mesh) {
             mesh.forEach(function (submesh) {
                 renderer.scene.remove(submesh);
             });
         });
+        entities.forEach(function (mesh) {
+            renderer.scene.remove(mesh.getModel());
+        });
+        entities = [];
         this.mapPos = new THREE.Vector2(x, y);
         this.meshes = [];
         this.obstacles = [];
@@ -1284,16 +1288,16 @@ var Game = (function () {
         var projectile = null;
         var obstacles = this.world.getObstacles();
         if (this.input.isPressed('65')) {
-            this.player.move(obstacles, -this.player.speed, 0, this.world, this.renderer);
+            this.player.move(obstacles, -this.player.speed, 0, this.world, this.renderer, this.entities);
         }
         if (this.input.isPressed('68')) {
-            this.player.move(obstacles, this.player.speed, 0, this.world, this.renderer);
+            this.player.move(obstacles, this.player.speed, 0, this.world, this.renderer, this.entities);
         }
         if (this.input.isPressed('83')) {
-            this.player.move(obstacles, 0, -this.player.speed, this.world, this.renderer);
+            this.player.move(obstacles, 0, -this.player.speed, this.world, this.renderer, this.entities);
         }
         if (this.input.isPressed('87')) {
-            this.player.move(obstacles, 0, this.player.speed, this.world, this.renderer);
+            this.player.move(obstacles, 0, this.player.speed, this.world, this.renderer, this.entities);
         }
 
         if (this.input.isPressed('74')) {
