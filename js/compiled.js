@@ -363,6 +363,7 @@ var Player = (function (_super) {
     __extends(Player, _super);
     function Player() {
         _super.call(this);
+        this.eventListeners();
         var size = 4;
         var geometry = new THREE.CubeGeometry(size, size, size);
         var material = new THREE.MeshPhongMaterial({ color: 0x00FF00 });
@@ -392,6 +393,12 @@ var Player = (function (_super) {
             new THREE.Vector3(0, -1, 0)
         ];
     }
+    Player.prototype.eventListeners = function () {
+        document.addEventListener('changeRoom', function (e) {
+            console.log('player changeRoom event', e);
+        });
+    };
+
     Player.prototype.update = function () {
         if (this.firingCooldown > 0) {
             this.firingCooldown -= 0.02;
@@ -1046,6 +1053,9 @@ var World = (function () {
         this.obstacles = [];
 
         this.generateRoomMeshes(this.floors[this.depth], this.mapPos.x, this.mapPos.y);
+        var event = document.createEvent('CustomEvent');
+        event.initEvent('changeRoom', true, true);
+        document.dispatchEvent(event);
     }
     World.prototype.getPosition = function () {
         return this.mapPos;
@@ -1218,6 +1228,7 @@ var DebugBuilder = (function () {
 var Game = (function () {
     function Game() {
         this.assets = new AssetManager();
+        this.eventListeners();
 
         this.width = 13;
         this.height = 7;
@@ -1254,6 +1265,12 @@ var Game = (function () {
 
         this.loop();
     }
+    Game.prototype.eventListeners = function () {
+        document.addEventListener('changeRoom', function (e) {
+            console.log('game changeRoom event', e);
+        });
+    };
+
     Game.prototype.loop = function () {
         this.update();
         this.draw();
