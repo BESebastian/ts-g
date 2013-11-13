@@ -392,10 +392,6 @@ var Player = (function (_super) {
             new THREE.Vector3(0, -1, 0)
         ];
     }
-    Player.prototype.checkCollision = function (obstacles) {
-        return false;
-    };
-
     Player.prototype.update = function () {
         if (this.firingCooldown > 0) {
             this.firingCooldown -= 0.02;
@@ -421,22 +417,22 @@ var Player = (function (_super) {
                     if (collision.distance <= _this.distance) {
                         if (collision.faceIndex === 3 && y > 0) {
                             velY = 0;
-                            if (collision.object.position.x === 35) {
+                            if (collision.object.position.x === 35 && _this.changeCooldown === 0) {
                                 _this.changeRoom('n', world, renderer);
                             }
                         } else if (collision.faceIndex === 2 && y < 0) {
                             velY = 0;
-                            if (collision.object.position.x === 35) {
+                            if (collision.object.position.x === 35 && _this.changeCooldown === 0) {
                                 _this.changeRoom('s', world, renderer);
                             }
                         } else if (collision.faceIndex === 0 && x < 0) {
                             velX = 0;
-                            if (collision.object.position.y === 20) {
+                            if (collision.object.position.y === 20 && _this.changeCooldown === 0) {
                                 _this.changeRoom('w', world, renderer);
                             }
                         } else if (collision.faceIndex === 1 && x > 0) {
                             velX = 0;
-                            if (collision.object.position.y === 20) {
+                            if (collision.object.position.y === 20 && _this.changeCooldown === 0) {
                                 _this.changeRoom('e', world, renderer);
                             }
                         }
@@ -455,34 +451,30 @@ var Player = (function (_super) {
         switch (direction) {
             case 'n':
                 if (x === exits[0][0] && y - 1 === exits[0][1]) {
-                    if (this.changeCooldown === 0) {
-                        world.changeRoom(x, y - 1, renderer);
-                    }
-                    this.changeCooldown = 1000;
+                    world.changeRoom(x, y - 1, renderer);
+                    this.changeCooldown = 20;
+                    this.pos.y = 5;
                 }
                 break;
             case 'e':
                 if (x + 1 === exits[2][0] && y === exits[2][1]) {
-                    if (this.changeCooldown === 0) {
-                        world.changeRoom(x + 1, y, renderer);
-                    }
-                    this.changeCooldown = 1000;
+                    world.changeRoom(x + 1, y, renderer);
+                    this.changeCooldown = 20;
+                    this.pos.x = 5;
                 }
                 break;
             case 's':
                 if (x === exits[1][0] && y + 1 === exits[1][1]) {
-                    if (this.changeCooldown === 0) {
-                        world.changeRoom(x, y + 1, renderer);
-                    }
-                    this.changeCooldown = 1000;
+                    world.changeRoom(x, y + 1, renderer);
+                    this.changeCooldown = 20;
+                    this.pos.y = 35;
                 }
                 break;
             case 'w':
                 if (x - 1 === exits[3][0] && y === exits[3][1]) {
-                    if (this.changeCooldown === 0) {
-                        world.changeRoom(x - 1, y, renderer);
-                    }
-                    this.changeCooldown = 1000;
+                    world.changeRoom(x - 1, y, renderer);
+                    this.changeCooldown = 20;
+                    this.pos.x = 65;
                 }
                 break;
         }
@@ -533,6 +525,10 @@ var Player = (function (_super) {
 
     Player.prototype.getKeys = function () {
         return this.keys;
+    };
+
+    Player.prototype.getChangeCooldown = function () {
+        return this.changeCooldown;
     };
     return Player;
 })(Creature);
@@ -662,12 +658,14 @@ var Room = (function () {
             [this.position.x - 1, this.position.y]
         ];
         var neighbours = [];
-        var _this = this;
-        directions.forEach(function (direction) {
-            if (!_this.isInvalid(direction[0], direction[1], floorLayout)) {
-                neighbours.push(direction);
+        for (var i = 0; i < directions.length; i++) {
+            if (!this.isInvalid(directions[i][0], directions[i][1], floorLayout)) {
+                neighbours[i] = directions[i];
+            } else {
+                neighbours[i] = 0;
             }
-        });
+        }
+        ;
         return neighbours;
     };
 
@@ -707,6 +705,7 @@ var Room = (function () {
         var geometry = new THREE.CubeGeometry(this.tileSize, this.tileSize, this.tileSize);
         var material = new THREE.MeshPhongMaterial();
         var darkMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
+        var doorMaterial = new THREE.MeshPhongMaterial({ color: 0x7A5230 });
         for (var y = 0; y < this.layout.length; y++) {
             for (var x = 0; x < this.layout[0].length; x++) {
                 if (this.layout[y][x] !== 1) {
@@ -716,8 +715,23 @@ var Room = (function () {
                     this.meshes[y][x].castShadow = false;
                     this.meshes[y][x].receiveShadow = true;
                 } else {
-                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
-                    this.meshes[y][x] = new THREE.Mesh(geometry, darkMaterial);
+                    var pos = new THREE.Vector3();
+                    if (x === 7 && y === 8 && this.exits[0] !== 0) {
+                        pos = new THREE.Vector3(x * this.tileSize, (y * this.tileSize) + 2, 1);
+                        this.meshes[y][x] = new THREE.Mesh(geometry, doorMaterial);
+                    } else if (x === 7 && y === 0 && this.exits[1] !== 0) {
+                        pos = new THREE.Vector3(x * this.tileSize, (y * this.tileSize) - 2, 1);
+                        this.meshes[y][x] = new THREE.Mesh(geometry, doorMaterial);
+                    } else if (x === 0 && y === 4 && this.exits[3] !== 0) {
+                        pos = new THREE.Vector3((x * this.tileSize) - 2, y * this.tileSize, 1);
+                        this.meshes[y][x] = new THREE.Mesh(geometry, doorMaterial);
+                    } else if (x === 14 && y === 4 && this.exits[2] !== 0) {
+                        pos = new THREE.Vector3((x * this.tileSize) + 2, y * this.tileSize, 1);
+                        this.meshes[y][x] = new THREE.Mesh(geometry, doorMaterial);
+                    } else {
+                        pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
+                        this.meshes[y][x] = new THREE.Mesh(geometry, darkMaterial);
+                    }
                     this.meshes[y][x].position = pos;
                     this.meshes[y][x].castShadow = true;
                     this.meshes[y][x].receiveShadow = true;
@@ -1034,8 +1048,10 @@ var World = (function () {
     };
 
     World.prototype.changeRoom = function (x, y, renderer) {
-        this.meshes.forEach(function (obstacle) {
-            renderer.scene.remove(obstacle);
+        this.meshes.forEach(function (mesh) {
+            mesh.forEach(function (submesh) {
+                renderer.scene.remove(submesh);
+            });
         });
         this.mapPos = new THREE.Vector2(x, y);
         this.meshes = [];
@@ -1165,6 +1181,7 @@ var UI = (function () {
         debugBuilder.addLine('shotDelay: ' + player.getShotDelay());
         debugBuilder.addLine('shotSpeed: ' + player.getShotSpeed());
         debugBuilder.addLine('hasFired: ' + player.hasFired());
+        debugBuilder.addLine('changeCooldown: ' + player.getChangeCooldown());
         debugBuilder.render(this.context);
     };
     return UI;

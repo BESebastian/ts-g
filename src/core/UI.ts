@@ -88,6 +88,7 @@ class UI {
         debugBuilder.addLine('shotDelay: ' + player.getShotDelay());
         debugBuilder.addLine('shotSpeed: ' + player.getShotSpeed());
         debugBuilder.addLine('hasFired: ' + player.hasFired());
+        debugBuilder.addLine('changeCooldown: ' + player.getChangeCooldown());
         debugBuilder.render(this.context);
     }
 

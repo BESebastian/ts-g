@@ -70,12 +70,13 @@ class Room {
             [this.position.x - 1, this.position.y]
         ];
         var neighbours = [];
-        var _this = this;
-        directions.forEach(function (direction) {
-            if (!_this.isInvalid(direction[0], direction[1], floorLayout)) {
-                neighbours.push(direction);
+        for (var i = 0; i < directions.length; i++) {
+            if (!this.isInvalid(directions[i][0], directions[i][1], floorLayout)) {
+                neighbours[i] = directions[i];
+            } else {
+                neighbours[i] = 0;
             }
-        });
+        };
         return neighbours;
     }
 
@@ -109,10 +110,15 @@ class Room {
         return this;
     }
 
+            //[this.position.x, this.position.y - 1],
+            //[this.position.x, this.position.y + 1],
+            //[this.position.x + 1, this.position.y],
+            //[this.position.x - 1, this.position.y]
     private generateMeshes() {
         var geometry = new THREE.CubeGeometry(this.tileSize, this.tileSize, this.tileSize);
         var material = new THREE.MeshPhongMaterial();
         var darkMaterial = new THREE.MeshPhongMaterial({ color: 0x555555 });
+        var doorMaterial = new THREE.MeshPhongMaterial({ color: 0x7A5230 });
         for (var y = 0; y < this.layout.length; y++) {
             for (var x = 0; x < this.layout[0].length; x++) {
                 // 1 is a wall, for now draw the floor if it exists
@@ -123,8 +129,23 @@ class Room {
                     this.meshes[y][x].castShadow = false;
                     this.meshes[y][x].receiveShadow = true;
                 } else {
-                    var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1)
-                    this.meshes[y][x] = new THREE.Mesh(geometry, darkMaterial);
+                    var pos = new THREE.Vector3();
+                    if (x === 7 && y === 8 && this.exits[0] !== 0) {
+                        pos = new THREE.Vector3(x * this.tileSize, (y * this.tileSize) + 2, 1);
+                        this.meshes[y][x] = new THREE.Mesh(geometry, doorMaterial);
+                    } else if (x === 7 && y === 0 && this.exits[1] !== 0) {
+                        pos = new THREE.Vector3(x * this.tileSize, (y * this.tileSize) - 2, 1);
+                        this.meshes[y][x] = new THREE.Mesh(geometry, doorMaterial);
+                    } else if (x === 0 && y === 4 && this.exits[3] !== 0) {
+                        pos = new THREE.Vector3((x * this.tileSize) - 2, y * this.tileSize, 1);
+                        this.meshes[y][x] = new THREE.Mesh(geometry, doorMaterial);
+                    } else if (x === 14 && y === 4 && this.exits[2] !== 0) {
+                        pos = new THREE.Vector3((x * this.tileSize) + 2, y * this.tileSize, 1);
+                        this.meshes[y][x] = new THREE.Mesh(geometry, doorMaterial);
+                    } else {
+                        pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1)
+                        this.meshes[y][x] = new THREE.Mesh(geometry, darkMaterial);
+                    }
                     this.meshes[y][x].position = pos;
                     this.meshes[y][x].castShadow = true;
                     this.meshes[y][x].receiveShadow = true;

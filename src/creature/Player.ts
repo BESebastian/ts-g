@@ -1,6 +1,6 @@
 ///<reference path='Creature.ts'/>
 
-class Player extends Creature implements Collider {
+class Player extends Creature {
 
     private fired:          boolean;
     private firingCooldown: number;
@@ -46,10 +46,6 @@ class Player extends Creature implements Collider {
         ];
     }
 
-    public checkCollision(obstacles):boolean {
-        return false;
-    }
-
     public update():void {
         if (this.firingCooldown > 0) {
             this.firingCooldown -= 0.02;
@@ -75,22 +71,22 @@ class Player extends Creature implements Collider {
                     if (collision.distance <= _this.distance) {
                         if (collision.faceIndex === 3 && y > 0) {
                             velY = 0;
-                            if (collision.object.position.x === 35) {
+                            if (collision.object.position.x === 35 && _this.changeCooldown === 0) {
                                 _this.changeRoom('n', world, renderer);
                             }
                         } else if (collision.faceIndex === 2 && y < 0) {
                             velY = 0
-                            if (collision.object.position.x === 35) {
+                            if (collision.object.position.x === 35 && _this.changeCooldown === 0) {
                                 _this.changeRoom('s', world, renderer);
                             }
                         } else if (collision.faceIndex === 0 && x < 0) {
                             velX = 0;
-                            if (collision.object.position.y === 20) {
+                            if (collision.object.position.y === 20 && _this.changeCooldown === 0) {
                                 _this.changeRoom('w', world, renderer);
                             }
                         } else if (collision.faceIndex === 1 && x > 0) {
                             velX = 0;
-                            if (collision.object.position.y === 20) {
+                            if (collision.object.position.y === 20 && _this.changeCooldown === 0) {
                                 _this.changeRoom('e', world, renderer);
                             }
                         }
@@ -109,34 +105,30 @@ class Player extends Creature implements Collider {
         switch (direction) {
             case 'n':
                 if (x === exits[0][0] && y - 1 === exits[0][1]) {
-                    if (this.changeCooldown === 0) {
-                        world.changeRoom(x, y - 1, renderer);
-                    }
-                    this.changeCooldown = 1000;
+                    world.changeRoom(x, y - 1, renderer);
+                    this.changeCooldown = 20;
+                    this.pos.y = 5;
                 }
                 break;
             case 'e':
                 if (x + 1 === exits[2][0] && y === exits[2][1]) {
-                    if (this.changeCooldown === 0) {
-                        world.changeRoom(x + 1, y, renderer);
-                    }
-                    this.changeCooldown = 1000;
+                    world.changeRoom(x + 1, y, renderer);
+                    this.changeCooldown = 20;
+                    this.pos.x = 5;
                 }
                 break;
             case 's':
                 if (x === exits[1][0] && y + 1 === exits[1][1]) {
-                    if (this.changeCooldown === 0) {
-                        world.changeRoom(x, y + 1, renderer);
-                    }
-                    this.changeCooldown = 1000;
+                    world.changeRoom(x, y + 1, renderer);
+                    this.changeCooldown = 20;
+                    this.pos.y = 35;
                 }
                 break;
             case 'w':
                 if (x - 1 === exits[3][0] && y === exits[3][1]) {
-                    if (this.changeCooldown === 0) {
-                        world.changeRoom(x - 1, y, renderer);
-                    }
-                    this.changeCooldown = 1000;
+                    world.changeRoom(x - 1, y, renderer);
+                    this.changeCooldown = 20;
+                    this.pos.x = 65;
                 }
                 break;
         }
@@ -191,4 +183,7 @@ class Player extends Creature implements Collider {
         return this.keys;
     }
 
+    public getChangeCooldown():number {
+        return this.changeCooldown;
+    }
 }

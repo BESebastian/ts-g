@@ -45,8 +45,10 @@ class World {
     }
 
     public changeRoom(x, y, renderer) {
-        this.meshes.forEach(function (obstacle) {
-            renderer.scene.remove(obstacle);
+        this.meshes.forEach(function (mesh) {
+            mesh.forEach(function (submesh) {
+                renderer.scene.remove(submesh);
+            });
         });
         this.mapPos = new THREE.Vector2(x, y);
         this.meshes = [];
