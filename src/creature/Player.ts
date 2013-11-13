@@ -108,6 +108,7 @@ class Player extends Creature {
                     world.changeRoom(x, y - 1, renderer);
                     this.changeCooldown = 20;
                     this.pos.y = 5;
+                    this.pos.x = 35;
                 }
                 break;
             case 'e':
@@ -115,6 +116,7 @@ class Player extends Creature {
                     world.changeRoom(x + 1, y, renderer);
                     this.changeCooldown = 20;
                     this.pos.x = 5;
+                    this.pos.y = 20;
                 }
                 break;
             case 's':
@@ -122,6 +124,7 @@ class Player extends Creature {
                     world.changeRoom(x, y + 1, renderer);
                     this.changeCooldown = 20;
                     this.pos.y = 35;
+                    this.pos.x = 35;
                 }
                 break;
             case 'w':
@@ -129,6 +132,7 @@ class Player extends Creature {
                     world.changeRoom(x - 1, y, renderer);
                     this.changeCooldown = 20;
                     this.pos.x = 65;
+                    this.pos.y = 20;
                 }
                 break;
         }
