@@ -768,6 +768,7 @@ var Room = (function () {
                     var item = this.itemFactory.itemPoolRandom();
                     item.setPosition(pos);
                     this.items.push(item);
+                    this.layout[y][x] = 0;
                 }
                 if (this.layout[y][x] === 3) {
                     var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
@@ -778,6 +779,10 @@ var Room = (function () {
                 }
             }
         }
+    };
+
+    Room.prototype.removeItem = function (item) {
+        this.items.splice(this.items.indexOf(item), 1);
     };
 
     Room.prototype.unlockRoom = function () {
@@ -1110,12 +1115,13 @@ var World = (function () {
         this.generateRoomMeshes(this.floors[this.depth], this.mapPos.x, this.mapPos.y);
         this.setNeighboursSeen(this.getCurrentRoom());
         this.getCurrentRoom().setSeen().setExplored();
-        var event = document.createEvent('CustomEvent');
-        event.initEvent('changeRoom', true, true);
-        document.dispatchEvent(event);
     }
     World.prototype.getPosition = function () {
         return this.mapPos;
+    };
+
+    World.prototype.removeItem = function (item) {
+        this.items.splice(this.items.indexOf(item), 1);
     };
 
     World.prototype.changeRoom = function (x, y, renderer, entities, roomItems) {
@@ -1127,11 +1133,18 @@ var World = (function () {
         entities.forEach(function (mesh) {
             renderer.scene.remove(mesh.getModel());
         });
+        roomItems.forEach(function (item) {
+            renderer.scene.remove(item.getModel());
+        });
+
         entities = [];
+        roomItems = [];
+
         this.mapPos = new THREE.Vector2(x, y);
         this.meshes = [];
         this.obstacles = [];
         this.items = [];
+
         this.generateRoomMeshes(this.floors[this.depth], this.mapPos.x, this.mapPos.y);
         this.getCurrentRoom().setExplored();
         this.setNeighboursSeen(this.getCurrentRoom());
@@ -1140,10 +1153,9 @@ var World = (function () {
                 renderer.scene.add(this.meshes[y][x]);
             }
         }
-        this.items.forEach(function (item) {
-            renderer.scene.add(item.getModel());
-            roomItems.push(item);
-        });
+        var event = document.createEvent('CustomEvent');
+        event.initEvent('changeRoom', true, true);
+        document.dispatchEvent(event);
     };
 
     World.prototype.setNeighboursSeen = function (room) {
@@ -1339,7 +1351,12 @@ var Game = (function () {
         this.loop();
     }
     Game.prototype.eventListeners = function () {
+        var _this = this;
         document.addEventListener('changeRoom', function (e) {
+            _this.roomItems = _this.world.getRoomItems();
+            _this.roomItems.forEach(function (item) {
+                _this.renderer.scene.add(item.getModel());
+            });
         });
     };
 
