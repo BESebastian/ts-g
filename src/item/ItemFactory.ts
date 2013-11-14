@@ -33,6 +33,7 @@ class ItemFactory {
             .setArmour(rand.armour || 0)
             .setBombs(rand.bombs || 0)
             .setKeys(rand.keys || 0)
+            .setCash(rand.cash || 0)
             .setModel(rand.model());
         return item;
     }

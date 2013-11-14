@@ -83,6 +83,18 @@ class ItemPools {
                     model.receiveShadow = true;
                     return model;
                 }
+            },
+            {
+                name: 'Cash',
+                cash: 1,
+                model: function() {
+                    var geometry = new THREE.CubeGeometry(1, 1, 1);
+                    var material = new THREE.MeshPhongMaterial({ color: 0xFFA500 });
+                    var model = new THREE.Mesh(geometry, material);
+                    model.castShadow = true;
+                    model.receiveShadow = true;
+                    return model;
+                }
             }
         ];
     }

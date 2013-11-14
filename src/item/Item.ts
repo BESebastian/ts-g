@@ -8,6 +8,7 @@ class Item implements Drawable, Updatable {
     private bombs:      number;
     private keys:       number;
     private armour:     number;
+    private cash:       number;
     private shotSpeed:  number;
     private shotDelay:  number;
     private name:       string;
@@ -25,6 +26,7 @@ class Item implements Drawable, Updatable {
         this.shotDelay = 0;
         this.keys = 0;
         this.bombs = 0;
+        this.cash = 0;
 
         this.caster = new THREE.Raycaster();
         this.distance = 1.5;
@@ -132,6 +134,15 @@ class Item implements Drawable, Updatable {
     public setKeys(amt: number):Item {
         this.keys = amt;
         return this;
+    }
+
+    public setCash(amt: number):Item {
+        this.cash = amt;
+        return this;
+    }
+
+    public getCash():number {
+        return this.cash;
     }
 
 }

@@ -82,11 +82,11 @@ class UI {
         debugBuilder.addLine('armour: ' + player.getArmour());
         debugBuilder.addLine('bombs: ' + player.getBombs());
         debugBuilder.addLine('keys: ' + player.getKeys());
+        debugBuilder.addLine('cash: ' + player.getCash());
         debugBuilder.addLine('speed: ' + player.getSpeed());
         debugBuilder.addLine('shotDelay: ' + player.getShotDelay());
         debugBuilder.addLine('shotSpeed: ' + player.getShotSpeed());
         debugBuilder.addLine('hasFired: ' + player.hasFired());
-        debugBuilder.addLine('changeCooldown: ' + player.getChangeCooldown());
         debugBuilder.render(this.context);
     }
 

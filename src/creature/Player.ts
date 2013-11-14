@@ -8,6 +8,7 @@ class Player extends Creature {
     private shotDelay:      number;
     private bombs:          number;
     private keys:           number;
+    private cash:           number;
     private inventory:      Item[];
     public  rays:           any[];
     public  distance:       number;
@@ -35,6 +36,7 @@ class Player extends Creature {
         this.hp = this.maxHp;
         this.bombs = 1;
         this.keys = 0;
+        this.cash = 0;
         this.armour = 0;
         this.inventory = [];
         this.caster = new THREE.Raycaster();
@@ -172,6 +174,7 @@ class Player extends Creature {
         this.shotSpeed += item.shotSpeed;
         this.maxHp += item.maxHp;
         this.shotDelay += item.shotDelay;
+        this.cash += item.cash;
 
         this.hp = (this.hp + item.hp >= this.maxHp)
             ? this.hp = this.maxHp
@@ -187,6 +190,10 @@ class Player extends Creature {
 
     public getBombs():number {
         return this.bombs;
+    }
+
+    public getCash():number {
+        return this.cash;
     }
 
     public getKeys():number {

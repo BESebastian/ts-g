@@ -85,6 +85,7 @@ var Item = (function () {
         this.shotDelay = 0;
         this.keys = 0;
         this.bombs = 0;
+        this.cash = 0;
 
         this.caster = new THREE.Raycaster();
         this.distance = 1.5;
@@ -193,6 +194,15 @@ var Item = (function () {
         this.keys = amt;
         return this;
     };
+
+    Item.prototype.setCash = function (amt) {
+        this.cash = amt;
+        return this;
+    };
+
+    Item.prototype.getCash = function () {
+        return this.cash;
+    };
     return Item;
 })();
 var ItemFactory = (function () {
@@ -211,7 +221,7 @@ var ItemFactory = (function () {
     ItemFactory.prototype.collectablePoolRandom = function () {
         var r = Math.floor(Math.random() * this.collectablePool.length);
         var rand = this.collectablePool[r];
-        var item = new Item(rand.name || 'undefined').setHp(rand.hp || 0).setArmour(rand.armour || 0).setBombs(rand.bombs || 0).setKeys(rand.keys || 0).setModel(rand.model());
+        var item = new Item(rand.name || 'undefined').setHp(rand.hp || 0).setArmour(rand.armour || 0).setBombs(rand.bombs || 0).setKeys(rand.keys || 0).setCash(rand.cash || 0).setModel(rand.model());
         return item;
     };
     return ItemFactory;
@@ -302,6 +312,18 @@ var ItemPools = (function () {
                     model.receiveShadow = true;
                     return model;
                 }
+            },
+            {
+                name: 'Cash',
+                cash: 1,
+                model: function () {
+                    var geometry = new THREE.CubeGeometry(1, 1, 1);
+                    var material = new THREE.MeshPhongMaterial({ color: 0xFFA500 });
+                    var model = new THREE.Mesh(geometry, material);
+                    model.castShadow = true;
+                    model.receiveShadow = true;
+                    return model;
+                }
             }
         ];
     };
@@ -382,6 +404,7 @@ var Player = (function (_super) {
         this.hp = this.maxHp;
         this.bombs = 1;
         this.keys = 0;
+        this.cash = 0;
         this.armour = 0;
         this.inventory = [];
         this.caster = new THREE.Raycaster();
@@ -518,6 +541,7 @@ var Player = (function (_super) {
         this.shotSpeed += item.shotSpeed;
         this.maxHp += item.maxHp;
         this.shotDelay += item.shotDelay;
+        this.cash += item.cash;
 
         this.hp = (this.hp + item.hp >= this.maxHp) ? this.hp = this.maxHp : this.hp += item.hp;
 
@@ -531,6 +555,10 @@ var Player = (function (_super) {
 
     Player.prototype.getBombs = function () {
         return this.bombs;
+    };
+
+    Player.prototype.getCash = function () {
+        return this.cash;
     };
 
     Player.prototype.getKeys = function () {
@@ -1280,11 +1308,11 @@ var UI = (function () {
         debugBuilder.addLine('armour: ' + player.getArmour());
         debugBuilder.addLine('bombs: ' + player.getBombs());
         debugBuilder.addLine('keys: ' + player.getKeys());
+        debugBuilder.addLine('cash: ' + player.getCash());
         debugBuilder.addLine('speed: ' + player.getSpeed());
         debugBuilder.addLine('shotDelay: ' + player.getShotDelay());
         debugBuilder.addLine('shotSpeed: ' + player.getShotSpeed());
         debugBuilder.addLine('hasFired: ' + player.hasFired());
-        debugBuilder.addLine('changeCooldown: ' + player.getChangeCooldown());
         debugBuilder.render(this.context);
     };
     return UI;
