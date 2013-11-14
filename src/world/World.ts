@@ -40,13 +40,14 @@ class World {
         this.generateRoomMeshes(this.floors[this.depth], this.mapPos.x, this.mapPos.y);
         this.setNeighboursSeen(this.getCurrentRoom());
         this.getCurrentRoom().setSeen().setExplored();
-        var event = document.createEvent('CustomEvent');
-        event.initEvent('changeRoom', true, true);
-        document.dispatchEvent(event);
     }
 
     public getPosition():THREE.Vector2 {
         return this.mapPos;
+    }
+
+    public removeItem(item: Item) {
+        this.items.splice(this.items.indexOf(item), 1);
     }
 
     public changeRoom(x, y, renderer, entities, roomItems) {
@@ -58,11 +59,18 @@ class World {
         entities.forEach(function (mesh) {
             renderer.scene.remove(mesh.getModel());
         });
+        roomItems.forEach(function (item) {
+            renderer.scene.remove(item.getModel());
+        });
+
         entities = [];
+        roomItems = [];
+
         this.mapPos = new THREE.Vector2(x, y);
         this.meshes = [];
         this.obstacles = [];
         this.items = [];
+
         this.generateRoomMeshes(this.floors[this.depth], this.mapPos.x, this.mapPos.y);
         this.getCurrentRoom().setExplored();
         this.setNeighboursSeen(this.getCurrentRoom());
@@ -71,10 +79,9 @@ class World {
                 renderer.scene.add(this.meshes[y][x]);
             }
         }
-        this.items.forEach(function (item) {
-            renderer.scene.add(item.getModel());
-            roomItems.push(item);
-        });
+        var event = document.createEvent('CustomEvent');
+        event.initEvent('changeRoom', true, true);
+        document.dispatchEvent(event);
     }
 
     private setNeighboursSeen(room: Room) {

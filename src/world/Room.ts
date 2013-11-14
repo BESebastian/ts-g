@@ -170,6 +170,7 @@ class Room {
                      var item = this.itemFactory.itemPoolRandom();
                      item.setPosition(pos);
                      this.items.push(item);
+                     this.layout[y][x] = 0;
                  }
                  if (this.layout[y][x] === 3) {
                      var pos = new THREE.Vector3(x * this.tileSize, y * this.tileSize, 1);
@@ -180,6 +181,10 @@ class Room {
                 }
             }
         }
+    }
+
+    public removeItem(item: Item) {
+        this.items.splice(this.items.indexOf(item), 1);
     }
 
     public unlockRoom() {

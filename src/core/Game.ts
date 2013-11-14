@@ -71,8 +71,12 @@ class Game {
     }
 
     private eventListeners():void {
+        var _this = this;
         document.addEventListener('changeRoom', function (e) {
-
+            _this.roomItems = _this.world.getRoomItems();
+            _this.roomItems.forEach(function (item) {
+                _this.renderer.scene.add(item.getModel());
+            });
         });
     }
 
