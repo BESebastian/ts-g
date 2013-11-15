@@ -1260,9 +1260,18 @@ var UI = (function () {
 
     UI.prototype.update = function (player, world) {
         this.clear();
+        this.background();
         this.messageLog();
         this.miniMap(world);
         this.debug(player);
+    };
+
+    UI.prototype.background = function () {
+        this.context.fillStyle = '#1a1917';
+        this.context.fillRect(0, 0, this.canvas.width, 185);
+        this.context.fillRect(0, 0, 170, this.canvas.height);
+        this.context.fillRect(this.canvas.width - 170, 0, 170, this.canvas.height);
+        this.context.fill();
     };
 
     UI.prototype.messageLog = function () {
@@ -1278,25 +1287,32 @@ var UI = (function () {
 
     UI.prototype.miniMap = function (world) {
         var floor = world.getCurrentFloor().getLayout();
-        var roomSizeWidth = 30;
-        var roomSizeHeight = 20;
-        var startX = this.canvas.width - 290;
+        var roomSizeWidth = 34;
+        var roomSizeHeight = 24;
+        var startX = this.canvas.width - 326;
         var startY = 20;
+        this.context.lineWidth = 2;
         for (var y = 0; y < floor.length; y++) {
             for (var x = 0; x < floor[0].length; x++) {
                 if (floor[y][x] === 0) {
-                    this.context.fillStyle = '#000';
+                    this.context.fillStyle = 'transparent';
+                    this.context.strokeStyle = 'transparent';
                 } else if (floor[y][x].getExplored()) {
-                    this.context.fillStyle = '#aaa';
+                    this.context.fillStyle = '#727272';
+                    this.context.strokeStyle = '#000';
                 } else if (floor[y][x].getSeen()) {
-                    this.context.fillStyle = '#333';
+                    this.context.fillStyle = '#343534';
+                    this.context.strokeStyle = '#000';
                 } else {
-                    this.context.fillStyle = '#000';
+                    this.context.fillStyle = 'transparent';
+                    this.context.strokeStyle = 'transparent';
                 }
                 if (world.getPosition().x === x && world.getPosition().y === y) {
                     this.context.fillStyle = '#fff';
+                    this.context.strokeStyle = '#000';
                 }
                 this.context.fillRect(startX + x * roomSizeWidth, startY + y * roomSizeHeight, roomSizeWidth, roomSizeHeight);
+                this.context.strokeRect(startX + x * roomSizeWidth, startY + y * roomSizeHeight, roomSizeWidth, roomSizeHeight);
             }
         }
     };
