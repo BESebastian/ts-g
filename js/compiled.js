@@ -86,6 +86,8 @@ var Item = (function () {
         this.keys = 0;
         this.bombs = 0;
         this.cash = 0;
+        this.isShopItem = false;
+        this.cost = 0;
 
         this.caster = new THREE.Raycaster();
         this.distance = 1.5;
@@ -202,6 +204,16 @@ var Item = (function () {
 
     Item.prototype.getCash = function () {
         return this.cash;
+    };
+
+    Item.prototype.setIsShopItem = function () {
+        this.isShopItem = true;
+        return this;
+    };
+
+    Item.prototype.setCost = function (amt) {
+        this.cost = amt;
+        return this;
     };
     return Item;
 })();
