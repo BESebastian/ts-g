@@ -239,4 +239,7 @@ class Room {
         return this;
     }
 
+    public isNormalRoom():boolean {
+        return (!this.isBossRoom, !this.isShop, !this.isItemRoom);
+    }
 }

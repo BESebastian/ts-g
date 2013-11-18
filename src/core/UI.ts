@@ -75,8 +75,27 @@ class UI {
                 }
                 this.context.fillRect(startX + x * roomSizeWidth, startY + y * roomSizeHeight, roomSizeWidth, roomSizeHeight);
                 this.context.strokeRect(startX + x * roomSizeWidth, startY + y * roomSizeHeight, roomSizeWidth, roomSizeHeight);
+                if (floor[y][x] !== 0) {
+                    if ((floor[y][x].getSeen()) && (floor[y][x].getIsShop() || floor[y][x].getIsBossRoom() || floor[y][x].getIsItemRoom())) {
+                        this.drawIcon(floor[y][x], startX + x * roomSizeWidth + 10, startY + y * roomSizeHeight + 20);
+                    }
+                }
             }
         }
+    }
+
+    private drawIcon(room, x, y) {
+        var char = '';
+        if (room.getIsShop()) {
+            char = 'S';
+        } else if (room.getIsItemRoom()) {
+            char = 'I';
+        } else if (room.getIsBossRoom()) {
+            char = 'B';
+        }
+        this.context.textAlign = 'center';
+        this.context.fillStyle = '#000';
+        this.context.fillText(char, x, y);
     }
 
     public addMessage(str: string):void {
