@@ -876,6 +876,10 @@ var Room = (function () {
         this.isBossRoom = true;
         return this;
     };
+
+    Room.prototype.isNormalRoom = function () {
+        return (!this.isBossRoom, !this.isShop, !this.isItemRoom);
+    };
     return Room;
 })();
 var Utils = (function () {
@@ -1035,7 +1039,24 @@ var FloorGenerator = (function () {
         this.rooms.push([this.spawn.x, this.spawn.y]);
         this.makeRoom(this.spawn.x, this.spawn.y);
         this.layout[this.spawn.y][this.spawn.x] = 9;
+        this.setSpecialRooms();
+        console.log(this.layout);
         return this;
+    };
+
+    FloorGenerator.prototype.setSpecialRooms = function () {
+        this.setSpecialRoom(4);
+        this.setSpecialRoom(3);
+        this.setSpecialRoom(2);
+    };
+
+    FloorGenerator.prototype.setSpecialRoom = function (code) {
+        var next = this.getNextRoom();
+        if (this.layout[next[1]][next[0]] === 1) {
+            this.layout[next[1]][next[0]] = code;
+        } else {
+            this.setSpecialRoom(code);
+        }
     };
 
     FloorGenerator.prototype.build = function () {
@@ -1313,8 +1334,27 @@ var UI = (function () {
                 }
                 this.context.fillRect(startX + x * roomSizeWidth, startY + y * roomSizeHeight, roomSizeWidth, roomSizeHeight);
                 this.context.strokeRect(startX + x * roomSizeWidth, startY + y * roomSizeHeight, roomSizeWidth, roomSizeHeight);
+                if (floor[y][x] !== 0) {
+                    if ((floor[y][x].getSeen()) && (floor[y][x].getIsShop() || floor[y][x].getIsBossRoom() || floor[y][x].getIsItemRoom())) {
+                        this.drawIcon(floor[y][x], startX + x * roomSizeWidth + 10, startY + y * roomSizeHeight + 20);
+                    }
+                }
             }
         }
+    };
+
+    UI.prototype.drawIcon = function (room, x, y) {
+        var char = '';
+        if (room.getIsShop()) {
+            char = 'S';
+        } else if (room.getIsItemRoom()) {
+            char = 'I';
+        } else if (room.getIsBossRoom()) {
+            char = 'B';
+        }
+        this.context.textAlign = 'center';
+        this.context.fillStyle = '#000';
+        this.context.fillText(char, x, y);
     };
 
     UI.prototype.addMessage = function (str) {
