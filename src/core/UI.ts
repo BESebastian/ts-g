@@ -76,8 +76,9 @@ class UI {
                 this.context.fillRect(startX + x * roomSizeWidth, startY + y * roomSizeHeight, roomSizeWidth, roomSizeHeight);
                 this.context.strokeRect(startX + x * roomSizeWidth, startY + y * roomSizeHeight, roomSizeWidth, roomSizeHeight);
                 if (floor[y][x] !== 0) {
-                    if ((floor[y][x].getSeen()) && (floor[y][x].getIsShop() || floor[y][x].getIsBossRoom() || floor[y][x].getIsItemRoom())) {
-                        this.drawIcon(floor[y][x], startX + x * roomSizeWidth + 10, startY + y * roomSizeHeight + 20);
+                    var showIcon = floor[y][x].getSeen();
+                    if ((showIcon) && (floor[y][x].getIsShop() || floor[y][x].getIsBossRoom() || floor[y][x].getIsItemRoom())) {
+                        this.drawIcon(floor[y][x], startX + x * roomSizeWidth, startY + y * roomSizeHeight);
                     }
                 }
             }
@@ -85,17 +86,15 @@ class UI {
     }
 
     private drawIcon(room, x, y) {
-        var char = '';
+        var image = new Image();
         if (room.getIsShop()) {
-            char = 'S';
+            image.src = '/assets/minimap/icon-shop.png';
         } else if (room.getIsItemRoom()) {
-            char = 'I';
+            image.src = '/assets/minimap/icon-itemroom.png';
         } else if (room.getIsBossRoom()) {
-            char = 'B';
+            image.src = '/assets/minimap/icon-boss.png';
         }
-        this.context.textAlign = 'center';
-        this.context.fillStyle = '#000';
-        this.context.fillText(char, x, y);
+        this.context.drawImage(image, x + 9, y + 4);
     }
 
     public addMessage(str: string):void {

@@ -30,12 +30,15 @@ class Room {
         if (this.getRoomCode(floorLayout) === 9) {
             this.layout = layoutFactory.getSpawnRoom();
             this.isSpawn = true;
+            this.locked = true;
         } else if (this.getRoomCode(floorLayout) === 2) {
             this.layout = layoutFactory.getShop();
             this.isShop = true;
+            this.locked = true;
         } else if (this.getRoomCode(floorLayout) === 3) {
             this.layout = layoutFactory.getItemRoom();
             this.isItemRoom = true;
+            this.locked = true;
         } else if (this.getRoomCode(floorLayout) === 4) {
             this.layout = layoutFactory.getBossRoom();
             this.isBossRoom = true;
@@ -189,6 +192,10 @@ class Room {
 
     public unlockRoom() {
         this.locked = false;
+    }
+
+    public lockRoom() {
+        this.locked = true;
     }
 
     public getItems() {

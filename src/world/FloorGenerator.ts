@@ -47,7 +47,6 @@ class FloorGenerator {
         this.makeRoom(this.spawn.x, this.spawn.y);
         this.layout[this.spawn.y][this.spawn.x] = 9;
         this.setSpecialRooms();
-        console.log(this.layout);
         return this;
     }
 

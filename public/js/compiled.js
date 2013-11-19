@@ -668,12 +668,15 @@ var Room = (function () {
         if (this.getRoomCode(floorLayout) === 9) {
             this.layout = layoutFactory.getSpawnRoom();
             this.isSpawn = true;
+            this.locked = true;
         } else if (this.getRoomCode(floorLayout) === 2) {
             this.layout = layoutFactory.getShop();
             this.isShop = true;
+            this.locked = true;
         } else if (this.getRoomCode(floorLayout) === 3) {
             this.layout = layoutFactory.getItemRoom();
             this.isItemRoom = true;
+            this.locked = true;
         } else if (this.getRoomCode(floorLayout) === 4) {
             this.layout = layoutFactory.getBossRoom();
             this.isBossRoom = true;
@@ -827,6 +830,10 @@ var Room = (function () {
 
     Room.prototype.unlockRoom = function () {
         this.locked = false;
+    };
+
+    Room.prototype.lockRoom = function () {
+        this.locked = true;
     };
 
     Room.prototype.getItems = function () {
@@ -1040,7 +1047,6 @@ var FloorGenerator = (function () {
         this.makeRoom(this.spawn.x, this.spawn.y);
         this.layout[this.spawn.y][this.spawn.x] = 9;
         this.setSpecialRooms();
-        console.log(this.layout);
         return this;
     };
 
@@ -1335,8 +1341,9 @@ var UI = (function () {
                 this.context.fillRect(startX + x * roomSizeWidth, startY + y * roomSizeHeight, roomSizeWidth, roomSizeHeight);
                 this.context.strokeRect(startX + x * roomSizeWidth, startY + y * roomSizeHeight, roomSizeWidth, roomSizeHeight);
                 if (floor[y][x] !== 0) {
-                    if ((floor[y][x].getSeen()) && (floor[y][x].getIsShop() || floor[y][x].getIsBossRoom() || floor[y][x].getIsItemRoom())) {
-                        this.drawIcon(floor[y][x], startX + x * roomSizeWidth + 10, startY + y * roomSizeHeight + 20);
+                    var showIcon = floor[y][x].getSeen();
+                    if ((showIcon) && (floor[y][x].getIsShop() || floor[y][x].getIsBossRoom() || floor[y][x].getIsItemRoom())) {
+                        this.drawIcon(floor[y][x], startX + x * roomSizeWidth, startY + y * roomSizeHeight);
                     }
                 }
             }
@@ -1344,17 +1351,15 @@ var UI = (function () {
     };
 
     UI.prototype.drawIcon = function (room, x, y) {
-        var char = '';
+        var image = new Image();
         if (room.getIsShop()) {
-            char = 'S';
+            image.src = '/assets/minimap/icon-shop.png';
         } else if (room.getIsItemRoom()) {
-            char = 'I';
+            image.src = '/assets/minimap/icon-itemroom.png';
         } else if (room.getIsBossRoom()) {
-            char = 'B';
+            image.src = '/assets/minimap/icon-boss.png';
         }
-        this.context.textAlign = 'center';
-        this.context.fillStyle = '#000';
-        this.context.fillText(char, x, y);
+        this.context.drawImage(image, x + 9, y + 4);
     };
 
     UI.prototype.addMessage = function (str) {
