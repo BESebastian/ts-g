@@ -71,7 +71,17 @@ var Input = (function () {
 })();
 var AssetManager = (function () {
     function AssetManager() {
+        this.images = [];
     }
+    AssetManager.prototype.loadImage = function (name, path) {
+        var img = new Image();
+        img.src = path;
+        this.images[name] = img;
+    };
+
+    AssetManager.prototype.getImage = function (name) {
+        return this.images[name];
+    };
     return AssetManager;
 })();
 var Item = (function () {
@@ -953,10 +963,10 @@ var RoomLayoutBuilder = (function () {
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 2, 3, 3, 3, 3, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         ];
@@ -1084,7 +1094,7 @@ var FloorGenerator = (function () {
         var neighbours = this.getNeighbours(x, y);
         var chanceIt = true;
         if (neighbours.length > 2) {
-            chanceIt = (Math.floor(Math.random() * 10) < 5);
+            chanceIt = (Math.floor(Math.random() * 10) < 2);
         }
         if (neighbours[0] !== undefined && chanceIt) {
             var nx = neighbours[0][0];
@@ -1269,7 +1279,8 @@ var World = (function () {
     return World;
 })();
 var UI = (function () {
-    function UI() {
+    function UI(assets) {
+        this.assets = assets;
         this.messages = [];
         this.canvas = document.createElement('canvas');
         var view = document.getElementById('viewport').getBoundingClientRect();
@@ -1353,11 +1364,11 @@ var UI = (function () {
     UI.prototype.drawIcon = function (room, x, y) {
         var image = new Image();
         if (room.getIsShop()) {
-            image.src = '/assets/minimap/icon-shop.png';
+            image = this.assets.getImage('icon-shop');
         } else if (room.getIsItemRoom()) {
-            image.src = '/assets/minimap/icon-itemroom.png';
+            image = this.assets.getImage('icon-itemroom');
         } else if (room.getIsBossRoom()) {
-            image.src = '/assets/minimap/icon-boss.png';
+            image = this.assets.getImage('icon-boss');
         }
         this.context.drawImage(image, x + 9, y + 4);
     };
@@ -1414,6 +1425,7 @@ var DebugBuilder = (function () {
 var Game = (function () {
     function Game() {
         this.assets = new AssetManager();
+        this.loadAssets();
         this.eventListeners();
 
         this.width = 13;
@@ -1429,9 +1441,9 @@ var Game = (function () {
         this.input = new Input();
         this.cf = new CreatureFactory();
         this.player = this.cf.spawnPlayer(spawnPos);
-        this.world = new World(THREE.ImageUtils.loadTexture('../assets/test.png'), this.tileSize, this.itemPool, this.collectablePool);
+        this.world = new World(this.assets.getImage('test'), this.tileSize, this.itemPool, this.collectablePool);
         this.entities = [];
-        this.ui = new UI();
+        this.ui = new UI(this.assets);
 
         this.renderer.scene.add(this.player.getModel());
 
@@ -1451,6 +1463,13 @@ var Game = (function () {
 
         this.loop();
     }
+    Game.prototype.loadAssets = function () {
+        this.assets.loadImage('icon-shop', '/assets/minimap/icon-shop.png');
+        this.assets.loadImage('icon-boss', '/assets/minimap/icon-boss.png');
+        this.assets.loadImage('icon-itemroom', '/assets/minimap/icon-itemroom.png');
+        this.assets.loadImage('test', '/assets/test.png');
+    };
+
     Game.prototype.eventListeners = function () {
         var _this = this;
         document.addEventListener('changeRoom', function (e) {
