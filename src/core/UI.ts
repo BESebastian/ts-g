@@ -3,8 +3,10 @@ class UI {
     private canvas:     HTMLCanvasElement;
     private context;
     private messages;
+    private assets;
 
-    constructor() {
+    constructor(assets) {
+        this.assets = assets;
         this.messages = [];
         this.canvas = document.createElement('canvas');
         var view = document.getElementById('viewport').getBoundingClientRect();
@@ -88,11 +90,11 @@ class UI {
     private drawIcon(room, x, y) {
         var image = new Image();
         if (room.getIsShop()) {
-            image.src = '/assets/minimap/icon-shop.png';
+            image = this.assets.getImage('icon-shop');
         } else if (room.getIsItemRoom()) {
-            image.src = '/assets/minimap/icon-itemroom.png';
+            image = this.assets.getImage('icon-itemroom');
         } else if (room.getIsBossRoom()) {
-            image.src = '/assets/minimap/icon-boss.png';
+            image = this.assets.getImage('icon-boss');
         }
         this.context.drawImage(image, x + 9, y + 4);
     }

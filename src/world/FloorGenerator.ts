@@ -82,7 +82,7 @@ class FloorGenerator {
         var neighbours = this.getNeighbours(x, y)
         var chanceIt = true;
         if (neighbours.length > 2) {
-            chanceIt = (Math.floor(Math.random() * 10) < 5);
+            chanceIt = (Math.floor(Math.random() * 10) < 2);
         }
         if (neighbours[0] !== undefined && chanceIt) {
             var nx = neighbours[0][0];

@@ -27,7 +27,8 @@ class Game {
     private collectablePool;
 
     constructor() {
-        this.assets   = new AssetManager();
+        this.assets = new AssetManager();
+        this.loadAssets();
         this.eventListeners();
 
         this.width = 13;
@@ -47,9 +48,9 @@ class Game {
         this.input    = new Input();
         this.cf       = new CreatureFactory();
         this.player   = this.cf.spawnPlayer(spawnPos);
-        this.world    = new World(THREE.ImageUtils.loadTexture('../assets/test.png'), this.tileSize, this.itemPool, this.collectablePool);
+        this.world    = new World(this.assets.getImage('test'), this.tileSize, this.itemPool, this.collectablePool);
         this.entities = [];
-        this.ui       = new UI();
+        this.ui       = new UI(this.assets);
 
         this.renderer.scene.add(this.player.getModel());
 
@@ -68,6 +69,13 @@ class Game {
         });
 
         this.loop();
+    }
+
+    private loadAssets():void {
+        this.assets.loadImage('icon-shop', '/assets/minimap/icon-shop.png');
+        this.assets.loadImage('icon-boss', '/assets/minimap/icon-boss.png');
+        this.assets.loadImage('icon-itemroom', '/assets/minimap/icon-itemroom.png');
+        this.assets.loadImage('test', '/assets/test.png');
     }
 
     private eventListeners():void {
